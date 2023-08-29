@@ -52,7 +52,7 @@ private:
         {
         }
 
-        void seed(const seed_type s)
+        void seed(seed_type s)
         {
             _engine.seed(s);
         }

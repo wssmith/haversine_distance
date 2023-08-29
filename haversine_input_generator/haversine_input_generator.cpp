@@ -22,7 +22,7 @@ namespace
 
     void write_point(std::ofstream& output_stream, globe_point point)
     {
-        output_stream << R"({ "lat": )" << point.y << R"(, "lon": )" << point.x << R"( })";
+        output_stream << R"({ "lat": )" << point.y << R"(, "lon": )" << point.x << " }";
     }
 
     void write_point_pair(std::ofstream& output_stream, const globe_point_pair& point_pair)
@@ -36,9 +36,9 @@ namespace
 
     void save_haversine_json(const char* path, const std::vector<globe_point_pair>& data)
     {
-        std::ofstream output_stream { path, std::ios::out };
+        std::ofstream output_stream{ path };
 
-        output_stream << "{\n  \"coordinates\": [\n";
+        output_stream << R"({\n  "coordinates": [\n)";
 
         if (!data.empty())
         {
@@ -72,7 +72,7 @@ int main()
         uniform_real_generator x_rand{ x_min, x_max };
         uniform_real_generator y_rand{ y_min, y_max };
 
-        std::vector<globe_point_pair> points{};
+        std::vector<globe_point_pair> points;
         points.reserve(pair_count);
 
         for (int i = 0; i < pair_count; ++i)
