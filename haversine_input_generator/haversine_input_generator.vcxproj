@@ -128,9 +128,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="haversine_formula.cpp" />
     <ClCompile Include="haversine_input_generator.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="haversine_formula.hpp" />
     <ClInclude Include="random_generator.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

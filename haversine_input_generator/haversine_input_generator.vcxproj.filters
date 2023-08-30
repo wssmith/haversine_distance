@@ -18,9 +18,15 @@
     <ClCompile Include="haversine_input_generator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="haversine_formula.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="random_generator.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="haversine_formula.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

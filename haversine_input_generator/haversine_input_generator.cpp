@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+#include "haversine_formula.hpp"
 #include "random_generator.hpp"
 
 namespace
@@ -66,6 +67,9 @@ namespace
 
         if (!data.empty())
         {
+            const auto& [p1, p2] = data[0];
+            double distance = reference_haversine(p1.x, p1.y, p2.x, p2.y);
+
             output_stream << "    ";
             write_point_pair(output_stream, data[0]);
 
