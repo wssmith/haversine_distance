@@ -56,7 +56,8 @@ namespace
 
     void write_point_pair(std::ofstream& output_stream, const globe_point_pair& point_pair)
     {
-        output_stream << "{ \"x0\": " << point_pair.point1.x << ", \"y0\": " << point_pair.point1.y << ", \"x1\": " << point_pair.point2.x << ", \"y1\": " << point_pair.point2.y << " }";
+        output_stream << "{ \"x0\": " << point_pair.point1.x << ", \"y0\": " << point_pair.point1.y
+                      << ", \"x1\": " << point_pair.point2.x << ", \"y1\": " << point_pair.point2.y << " }";
     }
 
     std::vector<double> save_haversine_json(const char* path, const std::vector<globe_point_pair>& data)
@@ -65,6 +66,9 @@ namespace
         haversine_distances.reserve(data.size());
 
         std::ofstream output_stream{ path };
+
+        if (!output_stream.is_open())
+            throw std::exception{ "Could not write input data JSON file." };
 
         output_stream << "{\n  \"pairs\": [\n";
 
@@ -99,8 +103,13 @@ namespace
     {
         std::ofstream output_stream{ path, std::ios::binary };
 
+        if (!output_stream.is_open())
+            throw std::exception{ "Could not write reference distance binary file." };
+
         for (const double distance : haversine_distances)
-            output_stream << distance;
+        {
+            output_stream.write(reinterpret_cast<const char*>(&distance), sizeof(decltype(distance)));
+        }
             
         output_stream.close();
     }
@@ -224,10 +233,10 @@ int main(int argc, char* argv[])
 
         std::ifstream input_stream{ distances_filename, std::ios::binary };
         std::vector<double> distances_from_file;
-        while (input_stream)
+        for (size_t i = 0; i < haversine_distances.size() && input_stream; ++i)
         {
             double distance = 0;
-            input_stream >> distance;
+            input_stream.read(reinterpret_cast<char*>(&distance), sizeof(decltype(distance)));
             distances_from_file.push_back(distance);
         }
 
