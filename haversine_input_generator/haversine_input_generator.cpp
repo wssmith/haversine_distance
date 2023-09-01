@@ -59,22 +59,30 @@ namespace
         output_stream << "{ \"x0\": " << point_pair.point1.x << ", \"y0\": " << point_pair.point1.y << ", \"x1\": " << point_pair.point2.x << ", \"y1\": " << point_pair.point2.y << " }";
     }
 
-    void save_haversine_json(const char* path, const std::vector<globe_point_pair>& data)
+    std::vector<double> save_haversine_json(const char* path, const std::vector<globe_point_pair>& data)
     {
+        std::vector<double> haversine_distances;
+        haversine_distances.reserve(data.size());
+
         std::ofstream output_stream{ path };
 
-        output_stream << "{\n  \"coordinates\": [\n";
+        output_stream << "{\n  \"pairs\": [\n";
 
         if (!data.empty())
         {
-            const auto& [p1, p2] = data[0];
-            double distance = reference_haversine(p1.x, p1.y, p2.x, p2.y);
+            const auto& [p1_0, p2_0] = data[0];
+            const double distance_0 = reference_haversine(p1_0.x, p1_0.y, p2_0.x, p2_0.y);
+            haversine_distances.push_back(distance_0);
 
             output_stream << "    ";
             write_point_pair(output_stream, data[0]);
 
             for (size_t i = 1; i < data.size(); ++i)
             {
+                const auto& [p1, p2] = data[i];
+                const double distance = reference_haversine(p1.x, p1.y, p2.x, p2.y);
+                haversine_distances.push_back(distance);
+
                 output_stream << ",\n    ";
                 write_point_pair(output_stream, data[i]);
             }
@@ -82,6 +90,18 @@ namespace
 
         output_stream << "\n  ]\n}\n";
 
+        output_stream.close();
+
+        return haversine_distances;
+    }
+
+    void save_haversine_distances(const char* path, const std::vector<double>& haversine_distances)
+    {
+        std::ofstream output_stream{ path, std::ios::binary };
+
+        for (const double distance : haversine_distances)
+            output_stream << distance;
+            
         output_stream.close();
     }
 }
@@ -196,9 +216,22 @@ int main(int argc, char* argv[])
 
         // save coordinates to a json file
         constexpr auto data_filename = "coordinates.json";
-        save_haversine_json(data_filename, points);
+        const std::vector<double> haversine_distances = save_haversine_json(data_filename, points);
+        std::cout << "Saved coordinate pairs to '" << data_filename << "'.\n";
 
-        std::cout << "Saved memory to '" << data_filename << "'.\n";
+        constexpr auto distances_filename = "answers.f64";
+        save_haversine_distances(distances_filename, haversine_distances);
+
+        std::ifstream input_stream{ distances_filename, std::ios::binary };
+        std::vector<double> distances_from_file;
+        while (input_stream)
+        {
+            double distance = 0;
+            input_stream >> distance;
+            distances_from_file.push_back(distance);
+        }
+
+        std::cout << "Saved reference haversine distances to '" << data_filename << "'.\n";
     }
     catch (std::exception& ex)
     {
