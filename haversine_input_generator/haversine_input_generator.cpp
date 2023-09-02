@@ -1,3 +1,4 @@
+#include <array>
 #include <cstdlib>
 #include <exception>
 #include <filesystem>
@@ -54,6 +55,39 @@ namespace
         globe_point point1{};
         globe_point point2{};
     };
+
+    bool validate_arguments(const haversine_arguments& app_args, const std::string& usage_message)
+    {
+        constexpr long long max_pair_count = 1LL << 34;
+        if (app_args.pair_count >= max_pair_count)
+        {
+            std::cout << usage_message << "\n\n";
+            std::cout << "Number of pairs must be less than " << max_pair_count << ". (value = " << app_args.pair_count << ")\n";
+            return false;
+        }
+
+        if (app_args.pair_count < 0)
+        {
+            std::cout << usage_message << "\n\n";
+            std::cout << "Number of pairs must be positive. (value = " << app_args.pair_count << ")\n";
+            return false;
+        }
+
+        const std::array point_arguments{ app_args.x_center_r1, app_args.y_center_r1, app_args.width_r1, app_args.height_r1,
+                                          app_args.x_center_r2, app_args.y_center_r2, app_args.width_r2, app_args.height_r2 };
+
+        for (size_t i = 0; i < point_arguments.size(); ++i)
+        {
+            if (point_arguments[i] < 0)
+            {
+                std::cout << usage_message << "\n\n";
+                std::cout << "The argument at position " << (i + 2) << " must be positive. (value = " << point_arguments[i] << ")\n";
+                return false;
+            }
+        }
+
+        return true;
+    }
 
     cluster_dimensions get_cluster_dimensions(const haversine_arguments& app_args)
     {
@@ -129,7 +163,7 @@ namespace
         output_stream.close();
     }
 
-    void save_haversine_distances(const char* path, const std::vector<double>& haversine_distances)
+    void save_haversine_distances(const char* path, const std::vector<double>& haversine_distances, double average_distance)
     {
         std::ofstream output_stream{ path, std::ios::binary };
 
@@ -140,6 +174,8 @@ namespace
         {
             output_stream.write(reinterpret_cast<const char*>(&distance), sizeof(decltype(distance)));
         }
+
+        output_stream.write(reinterpret_cast<const char*>(&average_distance), sizeof(decltype(average_distance)));
             
         output_stream.close();
     }
@@ -151,7 +187,7 @@ int main(int argc, char* argv[])
     {
         // read command line arguments
         const std::string exe_filename = std::filesystem::path(argv[0]).filename().string();
-        const std::string usage_message = "Usage:\n  " + exe_filename + " pair_count " + 
+        const std::string usage_message = "Usage: " + exe_filename + " pair_count " + 
                                           "[x_center_r1] [y_center_r1] [width_r1] [height_r1] " +
                                           "[x_center_r2] [y_center_r2] [width_r2] [height_r2]";
 
@@ -189,11 +225,8 @@ int main(int argc, char* argv[])
         }
 
         // validate arguments
-        constexpr long long max_pair_count = 1LL << 34;
-        const long long pair_count = app_args.pair_count;
-        if (pair_count >= max_pair_count)
+        if (!validate_arguments(app_args, usage_message))
         {
-            std::cout << "Number of pairs must be less than " << max_pair_count << ".\n";
             return EXIT_FAILURE;
         }
 
@@ -209,6 +242,7 @@ int main(int argc, char* argv[])
         uniform_real_generator x_rand_r2{ dimensions.x_min_r2, dimensions.x_max_r2 };
         uniform_real_generator y_rand_r2{ dimensions.y_min_r2, dimensions.y_max_r2 };
 
+        const long long pair_count = app_args.pair_count;
         std::vector<globe_point_pair> points;
         points.reserve(pair_count);
 
@@ -232,7 +266,7 @@ int main(int argc, char* argv[])
         std::cout << " done.\n\n";
 
         // calculate the average distance
-        const double average_distance = std::accumulate(distances.begin(), distances.end(), 0.0) / (1.0 * pair_count);
+        const double average_distance = std::accumulate(distances.begin(), distances.end(), 0.0) / static_cast<double>(pair_count);
 
         // summarize the results
         std::cout << "Method: " << (app_args.cluster_mode ? "cluster" : "uniform") << '\n';
@@ -249,23 +283,18 @@ int main(int argc, char* argv[])
         // save coordinates to a json file
         constexpr auto data_filename = "coordinates.json";
         std::cout << "\nSaving coordinate pairs to '" << data_filename << "'...";
+
         save_haversine_json(data_filename, points);
+
         std::cout << " done.\n\n";
 
         // save distances to a binary file
         constexpr auto distances_filename = "answers.f64";
         std::cout << "Saving reference haversine distances to '" << data_filename << "'...";
-        save_haversine_distances(distances_filename, distances);
-        std::cout << " done.\n";
 
-        /*std::ifstream input_stream{ distances_filename, std::ios::binary };
-        std::vector<double> distances_from_file;
-        for (size_t i = 0; i < distances.size() && input_stream; ++i)
-        {
-            double distance = 0;
-            input_stream.read(reinterpret_cast<char*>(&distance), sizeof(decltype(distance)));
-            distances_from_file.push_back(distance);
-        }*/
+        save_haversine_distances(distances_filename, distances, average_distance);
+
+        std::cout << " done.\n\n";
     }
     catch (std::exception& ex)
     {
