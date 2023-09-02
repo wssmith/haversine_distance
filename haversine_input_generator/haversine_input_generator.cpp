@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <numeric>
 #include <string>
 #include <vector>
 
@@ -25,7 +26,7 @@ namespace
         double width_r2{};
         double height_r2{};
 
-        int pair_count{};
+        long long pair_count{};
 
         bool cluster_mode{};
     };
@@ -54,17 +55,56 @@ namespace
         globe_point point2{};
     };
 
+    cluster_dimensions get_cluster_dimensions(const haversine_arguments& app_args)
+    {
+        if (app_args.cluster_mode)
+        {
+            const double x_radius_r1 = app_args.width_r1 / 2.0;
+            const double y_radius_r1 = app_args.height_r1 / 2.0;
+            const double x_radius_r2 = app_args.width_r2 / 2.0;
+            const double y_radius_r2 = app_args.height_r2 / 2.0;
+
+            return cluster_dimensions
+            {
+                .x_min_r1 = app_args.x_center_r1 - x_radius_r1,
+                .x_max_r1 = app_args.x_center_r1 + x_radius_r1,
+                .y_min_r1 = app_args.y_center_r1 - y_radius_r1,
+                .y_max_r1 = app_args.y_center_r1 + y_radius_r1,
+                .x_min_r2 = app_args.x_center_r2 - x_radius_r2,
+                .x_max_r2 = app_args.x_center_r2 + x_radius_r2,
+                .y_min_r2 = app_args.y_center_r2 - y_radius_r2,
+                .y_max_r2 = app_args.y_center_r2 + y_radius_r2,
+            };
+        }
+        else
+        {
+            constexpr double y_max_uniform = 90.0;
+            constexpr double y_min_uniform = 0.0;
+            constexpr double x_max_uniform = 180.0;
+            constexpr double x_min_uniform = 0.0;
+
+            return cluster_dimensions
+            {
+                .x_min_r1 = x_min_uniform,
+                .x_max_r1 = x_max_uniform,
+                .y_min_r1 = y_min_uniform,
+                .y_max_r1 = y_max_uniform,
+                .x_min_r2 = x_min_uniform,
+                .x_max_r2 = x_max_uniform,
+                .y_min_r2 = y_min_uniform,
+                .y_max_r2 = y_max_uniform,
+            };
+        }
+    }
+
     void write_point_pair(std::ofstream& output_stream, const globe_point_pair& point_pair)
     {
         output_stream << "{ \"x0\": " << point_pair.point1.x << ", \"y0\": " << point_pair.point1.y
                       << ", \"x1\": " << point_pair.point2.x << ", \"y1\": " << point_pair.point2.y << " }";
     }
 
-    std::vector<double> save_haversine_json(const char* path, const std::vector<globe_point_pair>& data)
+    void save_haversine_json(const char* path, const std::vector<globe_point_pair>& data)
     {
-        std::vector<double> haversine_distances;
-        haversine_distances.reserve(data.size());
-
         std::ofstream output_stream{ path };
 
         if (!output_stream.is_open())
@@ -74,19 +114,11 @@ namespace
 
         if (!data.empty())
         {
-            const auto& [p1_0, p2_0] = data[0];
-            const double distance_0 = reference_haversine(p1_0.x, p1_0.y, p2_0.x, p2_0.y);
-            haversine_distances.push_back(distance_0);
-
             output_stream << "    ";
             write_point_pair(output_stream, data[0]);
 
             for (size_t i = 1; i < data.size(); ++i)
             {
-                const auto& [p1, p2] = data[i];
-                const double distance = reference_haversine(p1.x, p1.y, p2.x, p2.y);
-                haversine_distances.push_back(distance);
-
                 output_stream << ",\n    ";
                 write_point_pair(output_stream, data[i]);
             }
@@ -95,8 +127,6 @@ namespace
         output_stream << "\n  ]\n}\n";
 
         output_stream.close();
-
-        return haversine_distances;
     }
 
     void save_haversine_distances(const char* path, const std::vector<double>& haversine_distances)
@@ -112,48 +142,6 @@ namespace
         }
             
         output_stream.close();
-    }
-}
-
-cluster_dimensions get_cluster_dimensions(const haversine_arguments& app_args)
-{
-    if (app_args.cluster_mode)
-    {
-        const double x_radius_r1 = app_args.width_r1 / 2.0;
-        const double y_radius_r1 = app_args.height_r1 / 2.0;
-        const double x_radius_r2 = app_args.width_r2 / 2.0;
-        const double y_radius_r2 = app_args.height_r2 / 2.0;
-
-        return cluster_dimensions
-        {
-            .x_min_r1 = app_args.x_center_r1 - x_radius_r1,
-            .x_max_r1 = app_args.x_center_r1 + x_radius_r1,
-            .y_min_r1 = app_args.y_center_r1 - y_radius_r1,
-            .y_max_r1 = app_args.y_center_r1 + y_radius_r1,
-            .x_min_r2 = app_args.x_center_r2 - x_radius_r2,
-            .x_max_r2 = app_args.x_center_r2 + x_radius_r2,
-            .y_min_r2 = app_args.y_center_r2 - y_radius_r2,
-            .y_max_r2 = app_args.y_center_r2 + y_radius_r2,
-        };
-    }
-    else
-    {
-        constexpr double y_max_uniform = 90.0;
-        constexpr double y_min_uniform = 0.0;
-        constexpr double x_max_uniform = 180.0;
-        constexpr double x_min_uniform = 0.0;
-
-        return cluster_dimensions
-        {
-            .x_min_r1 = x_min_uniform,
-            .x_max_r1 = x_max_uniform,
-            .y_min_r1 = y_min_uniform,
-            .y_max_r1 = y_max_uniform,
-            .x_min_r2 = x_min_uniform,
-            .x_max_r2 = x_max_uniform,
-            .y_min_r2 = y_min_uniform,
-            .y_max_r2 = y_max_uniform,
-        };
     }
 }
 
@@ -190,7 +178,7 @@ int main(int argc, char* argv[])
                 .y_center_r2 = std::stod(argv[7]),
                 .width_r2 = std::stod(argv[8]),
                 .height_r2 = std::stod(argv[9]),
-                .pair_count = std::stoi(argv[1]),
+                .pair_count = std::stoll(argv[1]),
                 .cluster_mode = true
             };
         }
@@ -200,8 +188,20 @@ int main(int argc, char* argv[])
             return EXIT_FAILURE;
         }
 
+        // validate arguments
+        constexpr long long max_pair_count = 1LL << 34;
+        const long long pair_count = app_args.pair_count;
+        if (pair_count >= max_pair_count)
+        {
+            std::cout << "Number of pairs must be less than " << max_pair_count << ".\n";
+            return EXIT_FAILURE;
+        }
+
+        std::cout << "--- Haversine Distance Input Generator ---\n\n";
+
         // generate pairs of coordinates
-        const int pair_count = app_args.pair_count;
+        std::cout << "Generating coordinate pairs...";
+
         const cluster_dimensions dimensions = get_cluster_dimensions(app_args);
 
         uniform_real_generator x_rand_r1{ dimensions.x_min_r1, dimensions.x_max_r1 };
@@ -212,6 +212,9 @@ int main(int argc, char* argv[])
         std::vector<globe_point_pair> points;
         points.reserve(pair_count);
 
+        std::vector<double> distances;
+        distances.reserve(pair_count);
+
         for (int i = 0; i < pair_count; ++i)
         {
             auto point_pair = globe_point_pair
@@ -221,26 +224,48 @@ int main(int argc, char* argv[])
             };
 
             points.push_back(point_pair);
+
+            double distance = reference_haversine(point_pair.point1.x, point_pair.point1.y, point_pair.point2.x, point_pair.point2.y);
+            distances.push_back(distance);
+        }
+
+        std::cout << " done.\n\n";
+
+        // calculate the average distance
+        const double average_distance = std::accumulate(distances.begin(), distances.end(), 0.0) / (1.0 * pair_count);
+
+        // summarize the results
+        std::cout << "Method: " << (app_args.cluster_mode ? "cluster" : "uniform") << '\n';
+        std::cout << "Pair count: " << pair_count << '\n';
+        std::cout << "Average distance: " << average_distance << '\n';
+
+        if (app_args.cluster_mode)
+        {
+            // this will be fairly accurate for small clusters, though with non-circular regions it will never be exact
+            const double expected_distance = reference_haversine(app_args.x_center_r1, app_args.y_center_r1, app_args.x_center_r2, app_args.y_center_r2);
+            std::cout << "Expected distance: " << expected_distance << '\n';
         }
 
         // save coordinates to a json file
         constexpr auto data_filename = "coordinates.json";
-        const std::vector<double> haversine_distances = save_haversine_json(data_filename, points);
-        std::cout << "Saved coordinate pairs to '" << data_filename << "'.\n";
+        std::cout << "\nSaving coordinate pairs to '" << data_filename << "'...";
+        save_haversine_json(data_filename, points);
+        std::cout << " done.\n\n";
 
+        // save distances to a binary file
         constexpr auto distances_filename = "answers.f64";
-        save_haversine_distances(distances_filename, haversine_distances);
+        std::cout << "Saving reference haversine distances to '" << data_filename << "'...";
+        save_haversine_distances(distances_filename, distances);
+        std::cout << " done.\n";
 
-        std::ifstream input_stream{ distances_filename, std::ios::binary };
+        /*std::ifstream input_stream{ distances_filename, std::ios::binary };
         std::vector<double> distances_from_file;
-        for (size_t i = 0; i < haversine_distances.size() && input_stream; ++i)
+        for (size_t i = 0; i < distances.size() && input_stream; ++i)
         {
             double distance = 0;
             input_stream.read(reinterpret_cast<char*>(&distance), sizeof(decltype(distance)));
             distances_from_file.push_back(distance);
-        }
-
-        std::cout << "Saved reference haversine distances to '" << data_filename << "'.\n";
+        }*/
     }
     catch (std::exception& ex)
     {
