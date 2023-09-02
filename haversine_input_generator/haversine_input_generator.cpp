@@ -225,11 +225,8 @@ int main(int argc, char* argv[])
             return EXIT_FAILURE;
         }
 
-        // validate arguments
         if (!validate_arguments(app_args, usage_message))
-        {
             return EXIT_FAILURE;
-        }
 
         std::cout << "--- Haversine Distance Input Generator ---\n\n";
 
