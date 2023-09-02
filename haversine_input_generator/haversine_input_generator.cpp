@@ -180,6 +180,26 @@ namespace
 
         output_stream.close();
     }
+
+    std::vector<double> read_binary_file(const std::string& path, size_t expected_points)
+    {
+        std::vector<double> data;
+        data.reserve(expected_points);
+
+        std::ifstream input_file{ path, std::ios::binary };
+
+        if (!input_file.is_open())
+            throw std::exception{ "Cannot open binary file." };
+
+        for (size_t i = 0; i < expected_points && input_file; ++i)
+        {
+            double distance = 0.0;
+            input_file.read(reinterpret_cast<char*>(&distance), sizeof(decltype(distance)));
+            data.push_back(distance);
+        }
+
+        return data;
+    }
 }
 
 int main(int argc, char* argv[])
@@ -279,7 +299,7 @@ int main(int argc, char* argv[])
         }
 
         // save coordinates to a json file
-        constexpr auto data_filename = "coordinates.json";
+        constexpr auto data_filename = "haversine_points.json";
         std::cout << "\nSaving coordinate pairs to '" << data_filename << "'...";
 
         save_haversine_json(data_filename, points);
@@ -287,7 +307,7 @@ int main(int argc, char* argv[])
         std::cout << " done.\n\n";
 
         // save distances to a binary file
-        constexpr auto distances_filename = "answers.f64";
+        constexpr auto distances_filename = "haversine_answers.f64";
         std::cout << "Saving reference haversine distances to '" << data_filename << "'...";
 
         save_haversine_distances(distances_filename, distances, average_distance);
