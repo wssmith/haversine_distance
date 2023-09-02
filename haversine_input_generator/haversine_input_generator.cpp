@@ -168,13 +168,16 @@ namespace
         if (!output_stream.is_open())
             throw std::exception{ "Could not write reference distance binary file." };
 
-        for (const double distance : haversine_distances)
+        if (!haversine_distances.empty())
         {
-            output_stream.write(reinterpret_cast<const char*>(&distance), sizeof(decltype(distance)));
+            for (const double distance : haversine_distances)
+            {
+                output_stream.write(reinterpret_cast<const char*>(&distance), sizeof(decltype(distance)));
+            }
+
+            output_stream.write(reinterpret_cast<const char*>(&average_distance), sizeof(decltype(average_distance)));
         }
 
-        output_stream.write(reinterpret_cast<const char*>(&average_distance), sizeof(decltype(average_distance)));
-            
         output_stream.close();
     }
 }
