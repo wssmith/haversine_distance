@@ -13,8 +13,6 @@
 
 namespace
 {
-    using namespace std::string_literals;
-
     struct haversine_arguments
     {
         double x_center_r1{};
