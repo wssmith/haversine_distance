@@ -26,7 +26,6 @@ namespace
         double height_r2{};
 
         long long pair_count{};
-
         bool cluster_mode{};
     };
 
@@ -284,7 +283,7 @@ int main(int argc, char* argv[])
         std::cout << " done.\n\n";
 
         // calculate the average distance
-        const double average_distance = std::accumulate(distances.begin(), distances.end(), 0.0) / static_cast<double>(pair_count);
+        const double average_distance = std::accumulate(distances.begin(), distances.end(), 0.0) / (1.0 * distances.size());
 
         // summarize the results
         std::cout << "Method: " << (app_args.cluster_mode ? "cluster" : "uniform") << '\n';
@@ -293,7 +292,7 @@ int main(int argc, char* argv[])
 
         if (app_args.cluster_mode)
         {
-            // this will be fairly accurate for small clusters, though with non-circular regions it will never be exact
+            // this will be fairly accurate for small clusters, though because we're using rectangular clusters it will never be exact
             const double expected_distance = reference_haversine(app_args.x_center_r1, app_args.y_center_r1, app_args.x_center_r2, app_args.y_center_r2);
             std::cout << "Expected distance: " << expected_distance << '\n';
         }
