@@ -1,10 +1,14 @@
 #ifndef WS_RANDOMGENERATOR_HPP
 #define WS_RANDOMGENERATOR_HPP
 
+#include <concepts>
 #include <memory>
 #include <random>
 #include <utility>
 #include <type_traits>
+
+template<typename T>
+concept arithmetic = std::integral<T> || std::floating_point<T>;
 
 template<typename Distribution, typename Engine = std::mt19937>
 class random_generator
@@ -13,14 +17,13 @@ public:
     using result_type = typename Distribution::result_type;
     using seed_type = unsigned int; // same as std::random_device::result_type
 
-    template<typename... Params, typename = std::enable_if_t<(... && std::is_arithmetic_v<std::decay_t<Params>>)>>
-    explicit random_generator(Params... args)
+    explicit random_generator(arithmetic auto... args)
     {
         std::random_device seed_generator;
         _impl = std::make_unique<random_generator_impl>(Engine{ seed_generator() }, args...);
     }
 
-    template<typename UnaryOperation, typename = std::enable_if_t<std::is_base_of_v<std::discrete_distribution<>, std::decay_t<Distribution>>>>
+    template<typename UnaryOperation> requires std::is_base_of_v<std::discrete_distribution<>, std::decay_t<Distribution>>
     random_generator(size_t nw, double x_min, double x_max, UnaryOperation fw)
     {
         std::random_device seed_generator;
