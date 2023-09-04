@@ -1,6 +1,7 @@
 #include "haversine_formula.hpp"
 
 #include <cmath>
+#include <numbers>
 
 namespace
 {
@@ -11,7 +12,8 @@ namespace
 
     double radians_from_degrees(double degrees)
     {
-        return 0.01745329251994329577 * degrees;
+        constexpr double factor = std::numbers::pi / 180.0;
+        return factor * degrees;
     }
 }
 
