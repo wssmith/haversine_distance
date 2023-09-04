@@ -182,7 +182,7 @@ namespace
         output_stream.close();
     }
 
-    std::vector<double> read_binary_file(const std::string& path, size_t expected_points)
+    std::vector<double> read_binary_file(const std::string& path, long long expected_points)
     {
         std::vector<double> data;
         data.reserve(expected_points);
@@ -192,7 +192,7 @@ namespace
         if (!input_file)
             throw std::exception{ "Cannot open binary file." };
 
-        for (size_t i = 0; i < expected_points && input_file; ++i)
+        for (auto i = 0LL; i < expected_points && input_file; ++i)
         {
             double distance = 0.0;
             input_file.read(reinterpret_cast<char*>(&distance), sizeof(decltype(distance)));

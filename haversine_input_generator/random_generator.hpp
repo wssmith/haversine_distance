@@ -23,7 +23,8 @@ public:
         _impl = std::make_unique<random_generator_impl>(Engine{ seed_generator() }, args...);
     }
 
-    template<typename UnaryOperation> requires std::is_base_of_v<std::discrete_distribution<>, std::decay_t<Distribution>>
+    template<typename UnaryOperation>
+    requires std::is_base_of_v<std::discrete_distribution<>, std::decay_t<Distribution>>
     random_generator(size_t nw, double x_min, double x_max, UnaryOperation fw)
     {
         std::random_device seed_generator;
