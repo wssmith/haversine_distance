@@ -139,7 +139,7 @@ namespace
     {
         std::ofstream output_stream{ path };
 
-        if (!output_stream.is_open())
+        if (!output_stream)
             throw std::exception{ "Could not write input data JSON file." };
 
         output_stream << "{\n  \"pairs\": [\n";
@@ -204,6 +204,8 @@ namespace
 
 int main(int argc, char* argv[])
 {
+    std::ios_base::sync_with_stdio(false);
+
     try
     {
         // read command line arguments
