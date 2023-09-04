@@ -5,6 +5,7 @@
 #include <fstream>
 #include <format>
 #include <iostream>
+#include <locale>
 #include <numeric>
 #include <string>
 #include <vector>
@@ -289,7 +290,7 @@ int main(int argc, char* argv[])
 
         // summarize the results
         std::cout << "Method: " << (app_args.cluster_mode ? "cluster" : "uniform") << '\n';
-        std::cout << "Pair count: " << app_args.pair_count << '\n';
+        std::cout << std::vformat(std::locale(""), "Pair count: {:Ld}\n", std::make_format_args(app_args.pair_count));
         std::cout << "Average distance: " << average_distance << '\n';
 
         if (app_args.cluster_mode)
@@ -309,7 +310,7 @@ int main(int argc, char* argv[])
 
         // save distances to a binary file
         constexpr auto distances_filename = "haversine_answers.f64";
-        std::cout << "Saving reference haversine distances to '" << data_filename << "'...";
+        std::cout << "Saving reference haversine distances to '" << distances_filename << "'...";
 
         save_haversine_distances(distances_filename, distances, average_distance);
 
