@@ -279,7 +279,8 @@ int main(int argc, char* argv[])
 
             points.push_back(point_pair);
 
-            double distance = reference_haversine(point_pair.point1.x, point_pair.point1.y, point_pair.point2.x, point_pair.point2.y);
+            const auto& [p1, p2] = point_pair;
+            double distance = reference_haversine(p1.x, p1.y, p2.x, p2.y);
             distances.push_back(distance);
         }
 
