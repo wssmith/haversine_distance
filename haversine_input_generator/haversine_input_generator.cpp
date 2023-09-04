@@ -3,6 +3,7 @@
 #include <exception>
 #include <filesystem>
 #include <fstream>
+#include <format>
 #include <iostream>
 #include <numeric>
 #include <string>
@@ -130,8 +131,8 @@ namespace
 
     void write_point_pair(std::ofstream& output_stream, const globe_point_pair& point_pair)
     {
-        output_stream << "{ \"x0\": " << point_pair.point1.x << ", \"y0\": " << point_pair.point1.y
-                      << ", \"x1\": " << point_pair.point2.x << ", \"y1\": " << point_pair.point2.y << " }";
+        const auto& [p1, p2] = point_pair;
+        output_stream << std::vformat(R"({{ "x0": {}, "y0": {}, "x1": {}, "y1": {} }})", std::make_format_args(p1.x, p1.y, p2.x, p2.y));
     }
 
     void save_haversine_json(const char* path, const std::vector<globe_point_pair>& data)
@@ -164,7 +165,7 @@ namespace
     {
         std::ofstream output_stream{ path, std::ios::binary };
 
-        if (!output_stream.is_open())
+        if (!output_stream)
             throw std::exception{ "Could not write reference distance binary file." };
 
         if (!haversine_distances.empty())
@@ -187,7 +188,7 @@ namespace
 
         std::ifstream input_file{ path, std::ios::binary };
 
-        if (!input_file.is_open())
+        if (!input_file)
             throw std::exception{ "Cannot open binary file." };
 
         for (size_t i = 0; i < expected_points && input_file; ++i)
@@ -259,14 +260,13 @@ int main(int argc, char* argv[])
         uniform_real_generator x_rand_r2{ dimensions.x_min_r2, dimensions.x_max_r2 };
         uniform_real_generator y_rand_r2{ dimensions.y_min_r2, dimensions.y_max_r2 };
 
-        const long long pair_count = app_args.pair_count;
         std::vector<globe_point_pair> points;
-        points.reserve(pair_count);
+        points.reserve(app_args.pair_count);
 
         std::vector<double> distances;
-        distances.reserve(pair_count);
+        distances.reserve(app_args.pair_count);
 
-        for (int i = 0; i < pair_count; ++i)
+        for (int i = 0; i < app_args.pair_count; ++i)
         {
             auto point_pair = globe_point_pair
             {
@@ -287,7 +287,7 @@ int main(int argc, char* argv[])
 
         // summarize the results
         std::cout << "Method: " << (app_args.cluster_mode ? "cluster" : "uniform") << '\n';
-        std::cout << "Pair count: " << pair_count << '\n';
+        std::cout << "Pair count: " << app_args.pair_count << '\n';
         std::cout << "Average distance: " << average_distance << '\n';
 
         if (app_args.cluster_mode)
