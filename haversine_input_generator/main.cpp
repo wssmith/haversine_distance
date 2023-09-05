@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <array>
 #include <cstdlib>
 #include <exception>
@@ -90,6 +91,11 @@ namespace
 
     cluster_dimensions get_cluster_dimensions(const haversine_arguments& app_args)
     {
+        constexpr double y_max = 90.0;
+        constexpr double y_min = 0.0;
+        constexpr double x_max = 180.0;
+        constexpr double x_min = 0.0;
+
         if (app_args.cluster_mode)
         {
             const double x_radius_r1 = app_args.width_r1 / 2.0;
@@ -99,33 +105,28 @@ namespace
 
             return cluster_dimensions
             {
-                .x_min_r1 = app_args.x_center_r1 - x_radius_r1,
-                .x_max_r1 = app_args.x_center_r1 + x_radius_r1,
-                .y_min_r1 = app_args.y_center_r1 - y_radius_r1,
-                .y_max_r1 = app_args.y_center_r1 + y_radius_r1,
-                .x_min_r2 = app_args.x_center_r2 - x_radius_r2,
-                .x_max_r2 = app_args.x_center_r2 + x_radius_r2,
-                .y_min_r2 = app_args.y_center_r2 - y_radius_r2,
-                .y_max_r2 = app_args.y_center_r2 + y_radius_r2,
+                .x_min_r1 = std::clamp(app_args.x_center_r1 - x_radius_r1, x_min, x_max),
+                .x_max_r1 = std::clamp(app_args.x_center_r1 + x_radius_r1, x_min, x_max),
+                .y_min_r1 = std::clamp(app_args.y_center_r1 - y_radius_r1, y_min, y_max),
+                .y_max_r1 = std::clamp(app_args.y_center_r1 + y_radius_r1, y_min, y_max),
+                .x_min_r2 = std::clamp(app_args.x_center_r2 - x_radius_r2, x_min, x_max),
+                .x_max_r2 = std::clamp(app_args.x_center_r2 + x_radius_r2, x_min, x_max),
+                .y_min_r2 = std::clamp(app_args.y_center_r2 - y_radius_r2, y_min, y_max),
+                .y_max_r2 = std::clamp(app_args.y_center_r2 + y_radius_r2, y_min, y_max)
             };
         }
         else
         {
-            constexpr double y_max_uniform = 90.0;
-            constexpr double y_min_uniform = 0.0;
-            constexpr double x_max_uniform = 180.0;
-            constexpr double x_min_uniform = 0.0;
-
             return cluster_dimensions
             {
-                .x_min_r1 = x_min_uniform,
-                .x_max_r1 = x_max_uniform,
-                .y_min_r1 = y_min_uniform,
-                .y_max_r1 = y_max_uniform,
-                .x_min_r2 = x_min_uniform,
-                .x_max_r2 = x_max_uniform,
-                .y_min_r2 = y_min_uniform,
-                .y_max_r2 = y_max_uniform,
+                .x_min_r1 = x_min,
+                .x_max_r1 = x_max,
+                .y_min_r1 = y_min,
+                .y_max_r1 = y_max,
+                .x_min_r2 = x_min,
+                .x_max_r2 = x_max,
+                .y_min_r2 = y_min,
+                .y_max_r2 = y_max,
             };
         }
     }
