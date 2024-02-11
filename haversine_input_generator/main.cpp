@@ -290,7 +290,7 @@ int main(int argc, char* argv[])
 
         // summarize the results
         std::cout << "Method: " << (app_args.cluster_mode ? "cluster" : "uniform") << '\n';
-        std::cout << std::vformat(std::locale(""), "Pair count: {:Ld}\n", std::make_format_args(app_args.pair_count));
+        std::cout << std::vformat(std::locale("en_US"), "Pair count: {:Ld}\n", std::make_format_args(app_args.pair_count));
         std::cout << "Average distance: " << average_distance << '\n';
 
         if (app_args.cluster_mode)
