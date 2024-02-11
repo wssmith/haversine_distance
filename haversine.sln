@@ -5,7 +5,7 @@ VisualStudioVersion = 17.6.33712.159
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "haversine_input_generator", "haversine_input_generator\haversine_input_generator.vcxproj", "{C1E0F1F2-080D-4AE1-9B7F-4F63D46781AD}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "haversine_basic", "haversine_basic\haversine_basic.vcxproj", "{BB859AAC-E286-4362-9F01-2A85BA308D47}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "haversine_processor", "haversine_basic\haversine_basic.vcxproj", "{BB859AAC-E286-4362-9F01-2A85BA308D47}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

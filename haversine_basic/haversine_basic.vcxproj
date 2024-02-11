@@ -24,6 +24,7 @@
     <ProjectGuid>{bb859aac-e286-4362-9f01-2a85ba308d47}</ProjectGuid>
     <RootNamespace>haversinebasic</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>haversine_processor</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -131,6 +132,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="haversine_formula.cpp" />
     <ClCompile Include="json\json.cpp" />
     <ClCompile Include="json\model.cpp" />
     <ClCompile Include="json\parser.cpp" />
@@ -140,6 +142,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="haversine_formula.hpp" />
     <ClInclude Include="json\container_utils.hpp" />
     <ClInclude Include="json\json.hpp" />
     <ClInclude Include="json\literals.hpp" />
