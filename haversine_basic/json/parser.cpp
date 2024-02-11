@@ -196,7 +196,7 @@ namespace json::parser
 
                 case token_type::eof:
                 default:
-                    errors.push_back(format_error("", t.line));
+                    errors.push_back(format_error("Unexpected token '" + t.lexeme + "' while parsing element.", t.line));
                     break;
             }
 
