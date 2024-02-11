@@ -5,13 +5,13 @@
 
 namespace json
 {
-	struct json_element;
-	struct token;
+    struct json_element;
+    struct token;
 
-	namespace parser
-	{
-		json_element parse(const std::vector<token>& tokens);
-	}
+    namespace parser
+    {
+        json_element parse(const std::vector<token>& tokens);
+    }
 }
 
 #endif

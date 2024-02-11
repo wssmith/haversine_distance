@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
         {
             if (auto* pn = root->get_as<int>("my_number"))
             {
-            	std::cout << "my number = " << *pn << '\n';
+                std::cout << "my number = " << *pn << '\n';
             }
 
             if (auto* pa = root->get_as<json_array>("nice_array"))
