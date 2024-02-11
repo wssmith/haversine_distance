@@ -1,6 +1,10 @@
 ﻿#include "parser.hpp"
 
+#include <exception>
 #include <span>
+#include <string>
+#include <variant>
+#include <vector>
 
 #include "model.hpp"
 #include "token.hpp"
@@ -215,7 +219,7 @@ namespace json::parser
         if (!errors.empty())
         {
             const std::string message = "Errors occurred while parsing JSON.\n" + join(errors, "\n");
-            throw std::exception(message.c_str());
+            throw std::exception{ message.c_str() };
         }
 
         return document;

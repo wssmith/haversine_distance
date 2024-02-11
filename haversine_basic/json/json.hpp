@@ -1,6 +1,8 @@
 ﻿#ifndef WS_JSON_HPP
 #define WS_JSON_HPP
 
+#include <string>
+
 #include "model.hpp"
 
 namespace json

@@ -1,4 +1,3 @@
-#include <cstdint>
 #include <cstdlib>
 #include <exception>
 #include <filesystem>
@@ -21,7 +20,7 @@ int main(int argc, char* argv[])
     constexpr int expected_args = 1;
     if (argc != expected_args + 1)
     {
-        constexpr auto usage_message = "Usage: haversine_basic input_file";
+        constexpr auto usage_message = "Usage: haversine_processor input_file";
         std::cout << usage_message << '\n';
         return EXIT_FAILURE;
     }
@@ -34,7 +33,8 @@ int main(int argc, char* argv[])
     try
     {
         const std::string input_filename = std::filesystem::path(app_args.input_path).filename().string();
-        std::cout << "--- Parsing " << input_filename << " ---\n\n";
+        std::cout << "--- Haversine Distance Processor ---\n\n";
+        std::cout << "Input file: " << input_filename << "\n\n";
 
         using namespace json;
         json_document document = deserialize_json(app_args.input_path);

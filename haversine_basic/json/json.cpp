@@ -1,5 +1,10 @@
 ﻿#include "json.hpp"
 
+#include <exception>
+#include <fstream>
+#include <string>
+#include <vector>
+
 #include "scanner.hpp"
 #include "token.hpp"
 #include "parser.hpp"

@@ -1,6 +1,7 @@
 ﻿#ifndef WS_MATCH_HPP
 #define WS_MATCH_HPP
 
+#include <exception>
 #include <type_traits>
 #include <variant>
 
@@ -21,14 +22,15 @@ auto match(auto&& f, const auto& v)
 
     switch (v.index())
     {
-        case 0: std::forward<decltype(f)>(f)(*std::get_if<0>(&v)); break;
-        case 1: std::forward<decltype(f)>(f)(*std::get_if<1>(&v)); break;
-        case 2: std::forward<decltype(f)>(f)(*std::get_if<2>(&v)); break;
-        case 3: std::forward<decltype(f)>(f)(*std::get_if<3>(&v)); break;
-        case 4: std::forward<decltype(f)>(f)(*std::get_if<4>(&v)); break;
-        case 5: std::forward<decltype(f)>(f)(*std::get_if<5>(&v)); break;
-        case 6: std::forward<decltype(f)>(f)(*std::get_if<6>(&v)); break;
-        case 7: std::forward<decltype(f)>(f)(*std::get_if<7>(&v)); break;
+        case 0: return std::forward<decltype(f)>(f)(*std::get_if<0>(&v));
+        case 1: return std::forward<decltype(f)>(f)(*std::get_if<1>(&v));
+        case 2: return std::forward<decltype(f)>(f)(*std::get_if<2>(&v));
+        case 3: return std::forward<decltype(f)>(f)(*std::get_if<3>(&v));
+        case 4: return std::forward<decltype(f)>(f)(*std::get_if<4>(&v));
+        case 5: return std::forward<decltype(f)>(f)(*std::get_if<5>(&v));
+        case 6: return std::forward<decltype(f)>(f)(*std::get_if<6>(&v));
+        case 7: return std::forward<decltype(f)>(f)(*std::get_if<7>(&v));
+        default: throw std::exception{ "Matched out-of-range variant." }; // unreachable
     }
 }
 

@@ -1,6 +1,8 @@
 ﻿#include "token.hpp"
 
-#include <sstream>
+#include <ostream>
+#include <string>
+#include <variant>
 
 namespace json
 {

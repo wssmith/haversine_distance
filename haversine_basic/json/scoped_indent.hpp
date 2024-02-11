@@ -1,7 +1,10 @@
 ﻿#ifndef WS_SCOPEDINDENT_HPP
 #define WS_SCOPEDINDENT_HPP
 
+#include <ios>
 #include <ostream>
+#include <streambuf>
+#include <string>
 
 class scoped_indent : public std::streambuf
 {

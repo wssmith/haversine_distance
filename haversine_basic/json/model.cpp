@@ -2,6 +2,7 @@
 
 #include <ostream>
 #include <ranges>
+#include <string>
 
 #include "match.hpp"
 #include "scoped_indent.hpp"
