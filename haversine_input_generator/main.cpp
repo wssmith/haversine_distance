@@ -164,7 +164,7 @@ namespace
     void write_point_pair(std::ofstream& output_stream, const globe_point_pair& point_pair)
     {
         const auto& [p1, p2] = point_pair;
-        output_stream << std::vformat(R"({{ "x0": {}, "y0": {}, "x1": {}, "y1": {} }})", std::make_format_args(p1.x, p1.y, p2.x, p2.y));
+        output_stream << std::format(R"({{ "x0": {}, "y0": {}, "x1": {}, "y1": {} }})", p1.x, p1.y, p2.x, p2.y);
     }
 
     void save_haversine_json(const char* path, const std::vector<globe_point_pair>& data)
@@ -320,7 +320,7 @@ int main(int argc, char* argv[])
 
         // summarize the results
         std::cout << "Method: " << (app_args.cluster_mode ? "cluster" : "uniform") << '\n';
-        std::cout << std::vformat(std::locale("en_US"), "Pair count: {:Ld}\n", std::make_format_args(app_args.pair_count));
+        std::cout << std::format(std::locale("en_US"), "Pair count: {:Ld}\n", app_args.pair_count);
         std::cout << "Average distance: " << average_distance << '\n';
 
         if (app_args.cluster_mode)

@@ -158,15 +158,15 @@ int main(int argc, char* argv[])
         }
 
         // print results
-        std::cout << std::vformat(std::locale("en_US"), "Input size: {:Ld} bytes\n", std::make_format_args(input_file_size));
-        std::cout << std::vformat(std::locale("en_US"), "Pair count: {:Ld}\n", std::make_format_args(distances.size()));
-        std::cout << std::vformat("Haversine sum: {:.16f}\n\n", std::make_format_args(average_distance));
+        std::cout << std::format(std::locale("en_US"), "Input size: {:Ld} bytes\n", input_file_size);
+        std::cout << std::format(std::locale("en_US"), "Pair count: {:Ld}\n", distances.size());
+        std::cout << std::format("Haversine sum: {:.16f}\n\n", average_distance);
 
         if (app_args.reference_path)
         {
             std::cout << "Validation:\n";
-            std::cout << std::vformat("Reference sum: {:.16f}\n", std::make_format_args(reference_distance));
-            std::cout << std::vformat("Difference: {:.16f}\n", std::make_format_args(distance_difference));
+            std::cout << std::format("Reference sum: {:.16f}\n", reference_distance);
+            std::cout << std::format("Difference: {:.16f}\n", distance_difference);
         }
     }
     catch (std::exception& ex)
