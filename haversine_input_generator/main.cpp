@@ -309,7 +309,7 @@ int main(int argc, char* argv[])
             points.push_back(point_pair);
 
             const auto& [p1, p2] = point_pair;
-            double distance = reference_haversine(p1.x, p1.y, p2.x, p2.y);
+            double distance = haversine_distance(p1.x, p1.y, p2.x, p2.y);
             distances.push_back(distance);
         }
 
@@ -326,7 +326,7 @@ int main(int argc, char* argv[])
         if (app_args.cluster_mode)
         {
             // this will be fairly accurate for small clusters, though because we're using rectangular clusters it will never be exact
-            const double expected_distance = reference_haversine(app_args.x_center_r1, app_args.y_center_r1, app_args.x_center_r2, app_args.y_center_r2);
+            const double expected_distance = haversine_distance(app_args.x_center_r1, app_args.y_center_r1, app_args.x_center_r2, app_args.y_center_r2);
             std::cout << "Expected distance: " << expected_distance << '\n';
         }
 
