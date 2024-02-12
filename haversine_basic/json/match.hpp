@@ -30,7 +30,7 @@ auto match(auto&& f, const auto& v)
         case 5: return std::forward<decltype(f)>(f)(*std::get_if<5>(&v));
         case 6: return std::forward<decltype(f)>(f)(*std::get_if<6>(&v));
         case 7: return std::forward<decltype(f)>(f)(*std::get_if<7>(&v));
-        default: throw std::exception{ "Matched out-of-range variant." }; // unreachable
+        default: throw std::exception{ "Could not match variant alternative." }; // unreachable
     }
 }
 
