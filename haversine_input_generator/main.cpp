@@ -223,7 +223,7 @@ namespace
         if (!input_file)
             throw std::exception{ "Cannot open binary file." };
 
-        for (auto i = 0LL; i < expected_points && input_file; ++i)
+        for (auto i = 0LL; i < expected_points && input_file.peek() && !input_file.eof(); ++i)
         {
             double distance = 0.0;
             input_file.read(reinterpret_cast<char*>(&distance), sizeof(decltype(distance)));
