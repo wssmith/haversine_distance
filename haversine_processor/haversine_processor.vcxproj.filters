@@ -81,4 +81,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\haversine_answers.f64">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Resources\haversine_points.json">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
 </Project>
