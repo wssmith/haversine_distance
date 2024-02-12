@@ -32,7 +32,7 @@ namespace
         globe_point point2{};
     };
 
-    double read_reference_distance(const std::string& path, long long expected_points)
+    double read_reference_distance(const std::string& path, size_t expected_points)
     {
         std::vector<double> data;
         data.reserve(expected_points);
