@@ -78,10 +78,40 @@ namespace
 
         for (size_t i = 0; i < point_arguments.size(); ++i)
         {
-            if (point_arguments[i] < 0)
+            const double& val = point_arguments[i];
+            int min_val = 0;
+            int max_val = 0;
+
+            switch (i)
+            {
+                case 0:  case 4: // region center x
+                    min_val = -180;
+                    max_val = 180;
+                    break;
+
+                case 1: case 5: // region center y
+                    min_val = -90;
+                    max_val = 90;
+                    break;
+
+                case 2: case 6: // region width
+                    min_val = 0;
+                    max_val = 360;
+                    break;
+
+                case 3: case 7: // region height
+                    min_val = 0;
+                    max_val = 180;
+                    break;
+
+                default:
+                    break; // unreachable
+            }
+
+            if (val < min_val || val > max_val)
             {
                 std::cout << usage_message << "\n\n";
-                std::cout << "The argument at position " << (i + 2) << " must be positive. (value = " << point_arguments[i] << ")\n";
+                std::cout << "The argument at position " << (i + 2) << " must be in [" << min_val << ", " << max_val << "]. (value = " << val << ")\n";
                 return false;
             }
         }
@@ -92,9 +122,9 @@ namespace
     cluster_dimensions get_cluster_dimensions(const haversine_arguments& app_args)
     {
         constexpr double y_max = 90.0;
-        constexpr double y_min = 0.0;
+        constexpr double y_min = -90.0;
         constexpr double x_max = 180.0;
-        constexpr double x_min = 0.0;
+        constexpr double x_min = -180.0;
 
         if (app_args.cluster_mode)
         {
@@ -210,7 +240,7 @@ int main(int argc, char* argv[])
     {
         // read command line arguments
         const std::string exe_filename = std::filesystem::path(argv[0]).filename().string();
-        const std::string usage_message = "Usage: " + exe_filename + " pair_count " + 
+        const std::string usage_message = "Usage: " + exe_filename + " pair_count " +
                                           "[x_center_r1] [y_center_r1] [width_r1] [height_r1] " +
                                           "[x_center_r2] [y_center_r2] [width_r2] [height_r2]";
 
