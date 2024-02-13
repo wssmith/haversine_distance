@@ -29,3 +29,8 @@ double haversine_distance(double x0, double y0, double x1, double y1, double ear
 
     return earth_radius * c;
 }
+
+double haversine_distance(globe_point p0, globe_point p1, double earth_radius)
+{
+    return haversine_distance(p0.x, p0.y, p1.x, p1.y, earth_radius);
+}

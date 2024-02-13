@@ -44,12 +44,6 @@ namespace
         double y_max_r2{};
     };
 
-    struct globe_point
-    {
-        double x{};
-        double y{};
-    };
-
     struct globe_point_pair
     {
         globe_point point1{};
@@ -309,7 +303,7 @@ int main(int argc, char* argv[])
             points.push_back(point_pair);
 
             const auto& [p1, p2] = point_pair;
-            double distance = haversine_distance(p1.x, p1.y, p2.x, p2.y);
+            double distance = haversine_distance(p1, p2);
             distances.push_back(distance);
         }
 

@@ -24,9 +24,9 @@ public:
     }
 
     scoped_indent(const scoped_indent&) = delete;
-    scoped_indent(scoped_indent&&) = delete;
     scoped_indent& operator=(const scoped_indent&) = delete;
-    scoped_indent& operator=(scoped_indent&&) = delete;
+    scoped_indent(scoped_indent&&) noexcept = delete;
+    scoped_indent& operator=(scoped_indent&&) noexcept = delete;
 
 protected:
     virtual int overflow(int ch) override

@@ -20,12 +20,6 @@ namespace
         const char* reference_path = nullptr;
     };
 
-    struct globe_point
-    {
-        double x{};
-        double y{};
-    };
-
     struct globe_point_pair
     {
         globe_point point1{};
@@ -53,7 +47,7 @@ namespace
         data.pop_back();
 
         if (data.size() != expected_points)
-            throw std::exception{ "" };
+            throw std::exception{ "The binary answers file and input JSON do not have the same number of point pairs." };
 
         return average_distance;
     }
@@ -89,29 +83,29 @@ int main(int argc, char* argv[])
     {
         auto input_file_info = std::filesystem::path(app_args.input_path);
         const std::string input_filename = input_file_info.filename().string();
-        const uintmax_t input_file_size = file_size(input_file_info);
+        const uintmax_t input_file_size = std::filesystem::file_size(input_file_info);
 
         std::cout << "--- Haversine Distance Processor ---\n\n";
         std::cout << "Input file: " << input_filename << "\n";
         if (app_args.reference_path)
         {
             const std::string reference_filename = std::filesystem::path(app_args.reference_path).filename().string();
-            std::cout << "Reference file: " << input_filename << "\n";
+            std::cout << "Reference file: " << reference_filename << "\n";
         }
         std::cout << '\n';
 
         // deserialize input json
         using namespace json;
         const json_document document = deserialize_json(app_args.input_path);
-        //std::cout << std::setprecision(13) << document << '\n';
+        std::cout << std::setprecision(13) << document << "\n\n";
 
         const json_object* root = document.as<json_object>();
         if (!root)
-            throw std::exception{ "" };
+            throw std::exception{ "The JSON root element is not an object." };
 
         const json_array* point_pairs = root->get_as<json_array>("pairs");
         if (!point_pairs)
-            throw std::exception{ "" };
+            throw std::exception{ "Could not find array member 'pairs'." };
 
         // calculate average haversine distance
         const size_t point_pair_count = point_pairs->size();
@@ -120,7 +114,7 @@ int main(int argc, char* argv[])
 
         constexpr long long max_pair_count = 1ULL << 30;
         if (point_pair_count > max_pair_count)
-            throw std::exception{ "" };
+            throw std::exception{ "The input JSON has too many point pairs." };
 
         const double sum_coeff = 1.0 / distances.size();
 
@@ -128,20 +122,35 @@ int main(int argc, char* argv[])
         {
             const json_object* point_pair = pair_element.as<json_object>();
             if (!point_pair)
-                throw std::exception{ "" };
+                throw std::exception{ "Unexpected non-object found in pair array." };
 
-            const auto* p_x0 = point_pair->get_as<float_literal>("x0");
-            const auto* p_y0 = point_pair->get_as<float_literal>("y0");
-            const auto* p_x1 = point_pair->get_as<float_literal>("x1");
-            const auto* p_y1 = point_pair->get_as<float_literal>("y1");
+            if (point_pair->size() != 4)
+                throw std::exception{ "Point pair objects must have exactly 4 members: x0, y0, x1, y1" };
+
+            const float_literal* p_x0 = nullptr;
+            const float_literal* p_y0 = nullptr;
+            const float_literal* p_x1 = nullptr;
+            const float_literal* p_y1 = nullptr;
+
+            for (const auto& [key, value] : *point_pair)
+            {
+                if (!p_x0 && key == "x0")
+                    p_x0 = value.as<float_literal>();
+                else if (!p_y0 && key == "y0")
+                    p_y0 = value.as<float_literal>();
+                else if (!p_x1 && key == "x1")
+                    p_x1 = value.as<float_literal>();
+                else if (!p_y1 && key == "y1")
+                    p_y1 = value.as<float_literal>();
+            }
 
             if (!p_x0 || !p_y0 || !p_x1 || !p_y1)
-                throw std::exception{ "" };
+                throw std::exception{ "Could not find all 4 point pair members: x0, y0, x1, y1" };
 
             globe_point p1{ .x = *p_x0, .y = *p_y0 };
             globe_point p2{ .x = *p_x1, .y = *p_y1 };
 
-            double distance = haversine_distance(p1.x, p1.y, p2.x, p2.y);
+            double distance = haversine_distance(p1, p2);
             distances.push_back(distance);
         }
 
