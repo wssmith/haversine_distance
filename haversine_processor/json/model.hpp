@@ -1,6 +1,7 @@
 ﻿#ifndef WS_JSON_MODEL_HPP
 #define WS_JSON_MODEL_HPP
 
+#include <optional>
 #include <string>
 #include <variant>
 #include <vector>
@@ -28,6 +29,8 @@ namespace json
 
         template<typename T> const T* get_as(const std::string& key) const;
         template<typename T> T* get_as(const std::string& key);
+
+        std::optional<float_literal> get_as_number(const std::string& key) const;
 
         using member_filter = bool(*)(const json_member&);
 
@@ -83,6 +86,8 @@ namespace json
 
         template<typename T> const T* as() const;
         template<typename T> T* as();
+
+        std::optional<float_literal> as_number() const;
     };
 
     using json_document = json_element;

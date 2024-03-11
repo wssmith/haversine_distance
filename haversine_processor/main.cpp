@@ -7,6 +7,7 @@
 #include <fstream>
 #include <iostream>
 #include <numeric>
+#include <optional>
 #include <string>
 
 #include "haversine_formula.hpp"
@@ -120,28 +121,28 @@ int main(int argc, char* argv[])
 
         for (const json_element& pair_element : *point_pairs)
         {
-            const json_object* point_pair = pair_element.as<json_object>();
+            const auto* point_pair = pair_element.as<json_object>();
             if (!point_pair)
                 throw std::exception{ "Unexpected non-object found in pair array." };
 
             if (point_pair->size() != 4)
                 throw std::exception{ "Point pair objects must have exactly 4 members: x0, y0, x1, y1" };
 
-            const float_literal* p_x0 = nullptr;
-            const float_literal* p_y0 = nullptr;
-            const float_literal* p_x1 = nullptr;
-            const float_literal* p_y1 = nullptr;
+            std::optional<float_literal> p_x0;
+            std::optional<float_literal> p_y0;
+            std::optional<float_literal> p_x1;
+            std::optional<float_literal> p_y1;
 
             for (const auto& [name, value] : *point_pair)
             {
                 if (!p_x0 && name == "x0")
-                    p_x0 = value.as<float_literal>();
+                    p_x0 = value.as_number();
                 else if (!p_y0 && name == "y0")
-                    p_y0 = value.as<float_literal>();
+                    p_y0 = value.as_number();
                 else if (!p_x1 && name == "x1")
-                    p_x1 = value.as<float_literal>();
+                    p_x1 = value.as_number();
                 else if (!p_y1 && name == "y1")
-                    p_y1 = value.as<float_literal>();
+                    p_y1 = value.as_number();
             }
 
             if (!p_x0 || !p_y0 || !p_x1 || !p_y1)
