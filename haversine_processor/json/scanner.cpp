@@ -12,6 +12,8 @@
 
 namespace json::scanner
 {
+    using namespace std::string_literals;
+
     namespace
     {
         void read_string(std::ifstream& input_file, int line, std::vector<token>& tokens, std::vector<std::string>& errors);
@@ -53,6 +55,15 @@ namespace json::scanner
             return consume_while(input_file, builder, [](int c) { return c >= '0' && c <= '9'; });
         }
 
+        void skip_while(std::ifstream& input_file, consume_filter predicate)
+        {
+            char ch{};
+            for (auto next = input_file.peek(); !input_file.eof() && predicate(next); next = input_file.peek())
+            {
+                input_file >> ch;
+            }
+        }
+
         bool reached_end_of_file(std::ifstream& input_file)
         {
             input_file.peek();
@@ -81,7 +92,6 @@ namespace json::scanner
 
                 case 'u': // unicode escape characters are not supported
                 default:
-                    using std::string_literals::operator ""s;
                     errors.push_back(format_error("Unrecognized escape character '\\"s + ch + "'.", line));
                     return ch;
             }
@@ -232,67 +242,76 @@ namespace json::scanner
         {
             switch (ch)
             {
-            case '{':
-                tokens.push_back({ .type = token_type::left_object_brace, .lexeme = std::string{ ch }, .line = line });
-                break;
+                case '{':
+                    tokens.push_back({ .type = token_type::left_object_brace, .lexeme = std::string{ ch }, .line = line });
+                    break;
 
-            case '}':
-                tokens.push_back({ .type = token_type::right_object_brace, .lexeme = std::string{ ch }, .line = line });
-                break;
+                case '}':
+                    tokens.push_back({ .type = token_type::right_object_brace, .lexeme = std::string{ ch }, .line = line });
+                    break;
 
-            case '[':
-                tokens.push_back({ .type = token_type::left_array_brace, .lexeme = std::string{ ch }, .line = line });
-                break;
+                case '[':
+                    tokens.push_back({ .type = token_type::left_array_brace, .lexeme = std::string{ ch }, .line = line });
+                    break;
 
-            case ']':
-                tokens.push_back({ .type = token_type::right_array_brace, .lexeme = std::string{ ch }, .line = line });
-                break;
+                case ']':
+                    tokens.push_back({ .type = token_type::right_array_brace, .lexeme = std::string{ ch }, .line = line });
+                    break;
 
-            case ':':
-                tokens.push_back({ .type = token_type::colon, .lexeme = std::string{ ch }, .line = line });
-                break;
+                case ':':
+                    tokens.push_back({ .type = token_type::colon, .lexeme = std::string{ ch }, .line = line });
+                    break;
 
-            case ',':
-                tokens.push_back({ .type = token_type::comma, .lexeme = std::string{ ch }, .line = line });
-                break;
+                case ',':
+                    tokens.push_back({ .type = token_type::comma, .lexeme = std::string{ ch }, .line = line });
+                    break;
 
-            case '"':
-                read_string(input_file, line, tokens, errors);
-                break;
+                case '"':
+                    read_string(input_file, line, tokens, errors);
+                    break;
 
-            case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9': case '-':
-                input_file.unget();
-                read_number(input_file, line, tokens, errors);
-                break;
+                case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9': case '-':
+                    input_file.unget();
+                    read_number(input_file, line, tokens, errors);
+                    break;
 
-            case 't':
-                input_file.unget();
-                read_literal(input_file, "true", token_type::boolean_true, line, tokens, errors);
-                break;
+                case 't':
+                    input_file.unget();
+                    read_literal(input_file, "true", token_type::boolean_true, line, tokens, errors);
+                    break;
 
-            case 'f':
-                input_file.unget();
-                read_literal(input_file, "false", token_type::boolean_false, line, tokens, errors);
-                break;
+                case 'f':
+                    input_file.unget();
+                    read_literal(input_file, "false", token_type::boolean_false, line, tokens, errors);
+                    break;
 
-            case 'n':
-                input_file.unget();
-                read_literal(input_file, "null", token_type::null, line, tokens, errors);
-                break;
+                case 'n':
+                    input_file.unget();
+                    read_literal(input_file, "null", token_type::null, line, tokens, errors);
+                    break;
 
-            case ' ':
-            case '\r':
-            case '\t':
-                break;
+                case '/':
+                {
+                    if (input_file.peek() != '/')
+                        goto unexpected_character;
 
-            case '\n':
-                ++line;
-                break;
+                    skip_while(input_file, [](int c) { return c != '\n'; });
+                    break;
+                }
 
-            default:
-                using std::string_literals::operator ""s;
-                errors.push_back(format_error("Unexpected character '"s + ch + "'.", line));
-                break;
+                case ' ':
+                case '\r':
+                case '\t':
+                    break;
+
+                case '\n':
+                    ++line;
+                    break;
+
+                default:
+                unexpected_character:
+                    errors.push_back(format_error("Unexpected character '"s + ch + "'.", line));
+                    break;
             }
         }
 
