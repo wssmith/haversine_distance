@@ -227,6 +227,11 @@ namespace json::scanner
             if (is_valid)
                 tokens.push_back({ .type = expected_token, .lexeme = expected, .line = line });
         }
+
+        void report_unexpected_character(char ch, int line, std::vector<std::string>& errors)
+        {
+            errors.push_back(format_error("Unexpected character '"s + ch + "'.", line));
+        }
     }
 
     std::vector<token> scan(std::ifstream& input_file)
@@ -293,7 +298,10 @@ namespace json::scanner
                 case '/':
                 {
                     if (input_file.peek() != '/')
-                        goto unexpected_character;
+                    {
+                        report_unexpected_character(ch, line, errors);
+                        break;
+                    }
 
                     skip_while(input_file, [](int c) { return c != '\n'; });
                     break;
@@ -309,8 +317,7 @@ namespace json::scanner
                     break;
 
                 default:
-                unexpected_character:
-                    errors.push_back(format_error("Unexpected character '"s + ch + "'.", line));
+                    report_unexpected_character(ch, line, errors);
                     break;
             }
         }
