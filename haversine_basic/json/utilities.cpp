@@ -10,7 +10,7 @@ namespace json
         return "[line " + std::to_string(line) + "] Error: " + message;
     }
 
-    std::string join(const std::vector<std::string>& parts, const std::string& delimiter)
+    std::string join(const std::string& delimiter, const std::vector<std::string>& parts)
     {
         if (parts.empty())
             return std::string{};

@@ -297,7 +297,7 @@ namespace json::scanner
 
         if (!errors.empty())
         {
-            const std::string message = "Errors occurred while scanning JSON.\n" + join(errors, "\n");
+            const std::string message = "Errors occurred while scanning JSON.\n" + join("\n", errors);
             throw std::exception(message.c_str());
         }
 

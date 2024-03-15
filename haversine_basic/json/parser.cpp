@@ -1,6 +1,7 @@
 ﻿#include "parser.hpp"
 
 #include <span>
+#include <unordered_set>
 
 #include "model.hpp"
 #include "token.hpp"
@@ -70,6 +71,7 @@ namespace json::parser
         json_object parse_object(token_iterator& iter, token_span token_view, std::vector<std::string>& errors)
         {
             json_object obj;
+            std::unordered_set<std::string> unique_keys;
 
             token t;
             bool expecting_member = false;
@@ -94,6 +96,11 @@ namespace json::parser
                         back_up(iter, token_view);
                         auto member = parse_member(iter, token_view, errors);
                         obj.members.push_back(member);
+
+                        if (unique_keys.contains(member.key))
+                            errors.push_back(format_error("Object has a duplicate key '" + member.key + "'.", t.line));
+                        else
+                            unique_keys.insert(member.key);
 
                         peek(iter, token_view, t);
                         if (t.type == token_type::comma)
@@ -214,7 +221,7 @@ namespace json::parser
 
         if (!errors.empty())
         {
-            const std::string message = "Errors occurred while parsing JSON.\n" + join(errors, "\n");
+            const std::string message = "Errors occurred while parsing JSON.\n" + join("\n", errors);
             throw std::exception(message.c_str());
         }
 

@@ -7,7 +7,7 @@
 namespace json
 {
     std::string format_error(const std::string& message, int line);
-    std::string join(const std::vector<std::string>& parts, const std::string& delimiter);
+    std::string join(const std::string& delimiter, const std::vector<std::string>& parts);
 }
 
 #endif

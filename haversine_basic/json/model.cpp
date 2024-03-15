@@ -47,8 +47,8 @@ namespace json
         {
             scoped_indent indent{ os }; // increases stream's line indentation inside the current scope
 
-            const json_member& m0 = o.members[0];
-            os << '\n' << m0;
+            const json_member& m_0 = o.members[0];
+            os << '\n' << m_0;
 
             for (size_t i = 1; i < o.members.size(); ++i)
             {
@@ -72,8 +72,8 @@ namespace json
         {
             scoped_indent indent{ os };
 
-            const json_element& e0 = a.elements[0];
-            os << '\n' << e0;
+            const json_element& e_0 = a.elements[0];
+            os << '\n' << e_0;
 
             for (size_t i = 1; i < a.elements.size(); ++i)
             {
