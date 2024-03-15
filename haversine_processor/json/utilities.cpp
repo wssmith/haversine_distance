@@ -2,6 +2,8 @@
 
 #include <cstddef>
 #include <sstream>
+#include <string>
+#include <vector>
 
 namespace json
 {

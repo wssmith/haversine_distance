@@ -40,6 +40,9 @@
       <Filter>Source Files\json</Filter>
     </ClCompile>
     <ClCompile Include="json\json.cpp">
+      <Filter>Source Files\json</Filter>
+    </ClCompile>
+    <ClCompile Include="haversine_formula.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -65,14 +68,25 @@
     <ClInclude Include="json\match.hpp">
       <Filter>Header Files\json</Filter>
     </ClInclude>
-    <ClInclude Include="json\container_utils.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="json\json.hpp">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\json</Filter>
+    </ClInclude>
+    <ClInclude Include="json\container_utils.hpp">
+      <Filter>Header Files\json</Filter>
     </ClInclude>
     <ClInclude Include="json\scoped_indent.hpp">
+      <Filter>Header Files\json</Filter>
+    </ClInclude>
+    <ClInclude Include="haversine_formula.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\haversine_answers.f64">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Resources\haversine_points.json">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

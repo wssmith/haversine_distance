@@ -1,7 +1,11 @@
 ﻿#include "parser.hpp"
 
+#include <exception>
 #include <span>
+#include <string>
 #include <unordered_set>
+#include <variant>
+#include <vector>
 
 #include "model.hpp"
 #include "token.hpp"
@@ -55,7 +59,7 @@ namespace json::parser
         {
             token t;
             read_and_advance(iter, token_view, t);
-            auto key = std::get<std::string>(t.literal);
+            const auto key = std::get<std::string>(t.literal);
 
             read_and_advance(iter, token_view, t);
             if (t.type != token_type::colon)
@@ -63,7 +67,7 @@ namespace json::parser
                 errors.push_back(format_error("Unexpected character after member name. Expected ':'. Found '" + t.lexeme + "'.", t.line));
             }
 
-            json_element element = parse_element(iter, token_view, errors);
+            const json_element element = parse_element(iter, token_view, errors);
 
             return { .key = key, .value = element };
         }
@@ -74,6 +78,7 @@ namespace json::parser
             std::unordered_set<std::string> unique_keys;
 
             token t;
+            int previous_line = 0;
             bool expecting_member = false;
             bool done = false;
             while (!done)
@@ -85,7 +90,7 @@ namespace json::parser
                     case token_type::right_object_brace:
                     {
                         if (expecting_member)
-                            errors.push_back(format_error("Unexpected end of object. A comma is not allowed after the final member.", t.line));
+                            errors.push_back(format_error("Unexpected end of object. A comma is not allowed after the final member.", previous_line));
 
                         done = true;
                         break;
@@ -119,6 +124,8 @@ namespace json::parser
                         errors.push_back(format_error("Unexpected token '" + t.lexeme + "' found inside object.", t.line));
                         break;
                 }
+
+                previous_line = t.line;
             }
 
             return obj;
@@ -222,7 +229,7 @@ namespace json::parser
         if (!errors.empty())
         {
             const std::string message = "Errors occurred while parsing JSON.\n" + join("\n", errors);
-            throw std::exception(message.c_str());
+            throw std::exception{ message.c_str() };
         }
 
         return document;

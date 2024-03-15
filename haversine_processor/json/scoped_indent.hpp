@@ -1,7 +1,10 @@
 ﻿#ifndef WS_SCOPEDINDENT_HPP
 #define WS_SCOPEDINDENT_HPP
 
+#include <ios>
 #include <ostream>
+#include <streambuf>
+#include <string>
 
 class scoped_indent : public std::streambuf
 {
@@ -21,9 +24,9 @@ public:
     }
 
     scoped_indent(const scoped_indent&) = delete;
-    scoped_indent(scoped_indent&&) = delete;
     scoped_indent& operator=(const scoped_indent&) = delete;
-    scoped_indent& operator=(scoped_indent&&) = delete;
+    scoped_indent(scoped_indent&&) noexcept = delete;
+    scoped_indent& operator=(scoped_indent&&) noexcept = delete;
 
 protected:
     virtual int overflow(int ch) override

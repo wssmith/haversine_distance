@@ -2,6 +2,7 @@
 
 #include <ostream>
 #include <ranges>
+#include <string>
 
 #include "match.hpp"
 #include "scoped_indent.hpp"
@@ -127,6 +128,16 @@ namespace json
         return os;
     }
 
+    std::optional<float_literal> json_element::as_number() const
+    {
+        if (const float_literal* f = std::get_if<float_literal>(&value))
+            return *f;
+        else if (const integer_literal* i = std::get_if<integer_literal>(&value))
+            return *i;
+        else
+            return {};
+    }
+
     const json_element* json_object::get(const std::string& key) const
     {
         const auto val = std::ranges::find_if(members, [&key](const json_member& m) { return m.key == key; });
@@ -140,6 +151,14 @@ namespace json
     json_element* json_object::get(const std::string& key)
     {
         return const_cast<json_element*>(static_cast<const json_object*>(this)->get(key));
+    }
+
+    std::optional<float_literal> json_object::get_as_number(const std::string& key) const
+    {
+        if (const json_element* val = get(key))
+            return val->as_number();
+
+        return {};
     }
 
     const json_element* json_object::find(member_filter predicate) const

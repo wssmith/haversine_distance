@@ -1,8 +1,11 @@
 ﻿#include "scanner.hpp"
 
+#include <fstream>
 #include <exception>
+#include <ostream>
 #include <sstream>
 #include <string>
+#include <vector>
 
 #include "utilities.hpp"
 #include "token.hpp"
@@ -298,7 +301,7 @@ namespace json::scanner
         if (!errors.empty())
         {
             const std::string message = "Errors occurred while scanning JSON.\n" + join("\n", errors);
-            throw std::exception(message.c_str());
+            throw std::exception{ message.c_str() };
         }
 
         return tokens;

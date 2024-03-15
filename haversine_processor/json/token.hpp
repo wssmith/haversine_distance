@@ -2,6 +2,7 @@
 #define WS_JSON_TOKEN_HPP
 
 #include <cstdint>
+#include <ostream>
 #include <string>
 #include <variant>
 

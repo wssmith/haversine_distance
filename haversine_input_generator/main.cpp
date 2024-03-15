@@ -44,12 +44,6 @@ namespace
         double y_max_r2{};
     };
 
-    struct globe_point
-    {
-        double x{};
-        double y{};
-    };
-
     struct globe_point_pair
     {
         globe_point point1{};
@@ -78,10 +72,40 @@ namespace
 
         for (size_t i = 0; i < point_arguments.size(); ++i)
         {
-            if (point_arguments[i] < 0)
+            const double& val = point_arguments[i];
+            int min_val = 0;
+            int max_val = 0;
+
+            switch (i)
+            {
+                case 0:  case 4: // region center x
+                    min_val = -180;
+                    max_val = 180;
+                    break;
+
+                case 1: case 5: // region center y
+                    min_val = -90;
+                    max_val = 90;
+                    break;
+
+                case 2: case 6: // region width
+                    min_val = 0;
+                    max_val = 360;
+                    break;
+
+                case 3: case 7: // region height
+                    min_val = 0;
+                    max_val = 180;
+                    break;
+
+                default:
+                    break; // unreachable
+            }
+
+            if (val < min_val || val > max_val)
             {
                 std::cout << usage_message << "\n\n";
-                std::cout << "The argument at position " << (i + 2) << " must be positive. (value = " << point_arguments[i] << ")\n";
+                std::cout << "The argument at position " << (i + 2) << " must be in [" << min_val << ", " << max_val << "]. (value = " << val << ")\n";
                 return false;
             }
         }
@@ -92,9 +116,9 @@ namespace
     cluster_dimensions get_cluster_dimensions(const haversine_arguments& app_args)
     {
         constexpr double y_max = 90.0;
-        constexpr double y_min = 0.0;
+        constexpr double y_min = -90.0;
         constexpr double x_max = 180.0;
-        constexpr double x_min = 0.0;
+        constexpr double x_min = -180.0;
 
         if (app_args.cluster_mode)
         {
@@ -134,7 +158,7 @@ namespace
     void write_point_pair(std::ofstream& output_stream, const globe_point_pair& point_pair)
     {
         const auto& [p1, p2] = point_pair;
-        output_stream << std::vformat(R"({{ "x0": {}, "y0": {}, "x1": {}, "y1": {} }})", std::make_format_args(p1.x, p1.y, p2.x, p2.y));
+        output_stream << std::format(R"({{ "x0": {}, "y0": {}, "x1": {}, "y1": {} }})", p1.x, p1.y, p2.x, p2.y);
     }
 
     void save_haversine_json(const char* path, const std::vector<globe_point_pair>& data)
@@ -193,7 +217,7 @@ namespace
         if (!input_file)
             throw std::exception{ "Cannot open binary file." };
 
-        for (auto i = 0LL; i < expected_points && input_file; ++i)
+        for (auto i = 0LL; i < expected_points && input_file.peek() && !input_file.eof(); ++i)
         {
             double distance = 0.0;
             input_file.read(reinterpret_cast<char*>(&distance), sizeof(decltype(distance)));
@@ -210,7 +234,7 @@ int main(int argc, char* argv[])
     {
         // read command line arguments
         const std::string exe_filename = std::filesystem::path(argv[0]).filename().string();
-        const std::string usage_message = "Usage: " + exe_filename + " pair_count " + 
+        const std::string usage_message = "Usage: " + exe_filename + " pair_count " +
                                           "[x_center_r1] [y_center_r1] [width_r1] [height_r1] " +
                                           "[x_center_r2] [y_center_r2] [width_r2] [height_r2]";
 
@@ -279,7 +303,7 @@ int main(int argc, char* argv[])
             points.push_back(point_pair);
 
             const auto& [p1, p2] = point_pair;
-            double distance = reference_haversine(p1.x, p1.y, p2.x, p2.y);
+            double distance = haversine_distance(p1, p2);
             distances.push_back(distance);
         }
 
@@ -290,13 +314,13 @@ int main(int argc, char* argv[])
 
         // summarize the results
         std::cout << "Method: " << (app_args.cluster_mode ? "cluster" : "uniform") << '\n';
-        std::cout << std::vformat(std::locale("en_US"), "Pair count: {:Ld}\n", std::make_format_args(app_args.pair_count));
+        std::cout << std::format(std::locale("en_US"), "Pair count: {:Ld}\n", app_args.pair_count);
         std::cout << "Average distance: " << average_distance << '\n';
 
         if (app_args.cluster_mode)
         {
             // this will be fairly accurate for small clusters, though because we're using rectangular clusters it will never be exact
-            const double expected_distance = reference_haversine(app_args.x_center_r1, app_args.y_center_r1, app_args.x_center_r2, app_args.y_center_r2);
+            const double expected_distance = haversine_distance(app_args.x_center_r1, app_args.y_center_r1, app_args.x_center_r2, app_args.y_center_r2);
             std::cout << "Expected distance: " << expected_distance << '\n';
         }
 
