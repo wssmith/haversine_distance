@@ -298,12 +298,10 @@ namespace json::scanner
                 case '/':
                 {
                     if (input_file.peek() != '/')
-                    {
                         report_unexpected_character(ch, line, errors);
-                        break;
-                    }
+                    else
+                        skip_while(input_file, [](int c) { return c != '\n'; });
 
-                    skip_while(input_file, [](int c) { return c != '\n'; });
                     break;
                 }
 
