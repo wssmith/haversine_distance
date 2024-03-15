@@ -136,6 +136,7 @@ namespace json::parser
             json_array list;
 
             token t;
+            int previous_line = 0;
             bool expecting_element = false;
             bool done = false;
             while (!done)
@@ -149,7 +150,7 @@ namespace json::parser
                         advance(iter, token_view);
 
                         if (expecting_element)
-                            errors.push_back(format_error("Unexpected end of array. A comma is not allowed after the final element.", t.line));
+                            errors.push_back(format_error("Unexpected end of array. A comma is not allowed after the final element.", previous_line));
 
                         done = true;
                         break;
@@ -171,6 +172,8 @@ namespace json::parser
                             expecting_element = false;
                         }
                     }
+
+                    previous_line = t.line;
                 }
             }
 
