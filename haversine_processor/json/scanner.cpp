@@ -296,14 +296,35 @@ namespace json::scanner
                     break;
 
                 case '/':
-                {
-                    if (input_file.peek() != '/')
-                        report_unexpected_character(ch, line, errors);
-                    else
-                        skip_while(input_file, [](int c) { return c != '\n'; });
+                    switch (input_file.peek())
+                    {
+                        case '/':
+                            skip_while(input_file, [](int c) { return c != '\n'; });
+                            break;
 
+                        case '*':
+                            input_file >> ch;
+
+                            do
+                            {
+                                skip_while(input_file, [](int c) { return c != '*'; });
+                                if (input_file.peek() == '*')
+                                    input_file >> ch;
+                            }
+                            while (input_file.peek() != '/' && !input_file.eof());
+
+                            if (input_file.peek() == '/')
+                                input_file >> ch;
+
+                            // todo: report unterminated block comments
+
+                            break;
+
+                        default:
+                            report_unexpected_character(ch, line, errors);
+                            break;
+                    }
                     break;
-                }
 
                 case ' ':
                 case '\r':
