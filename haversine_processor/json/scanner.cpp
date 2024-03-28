@@ -232,6 +232,52 @@ namespace json::scanner
         {
             errors.push_back(format_error("Unexpected character '"s + ch + "'.", line));
         }
+
+        void skip_comment(std::ifstream& input_file, int& line, std::vector<std::string>& errors)
+        {
+            const int comment_start_line = line;
+            const int next = input_file.peek();
+            if (input_file.eof())
+            {
+                errors.push_back("Unexpected end of file after '/'.");
+                return;
+            }
+
+            switch (next)
+            {
+                case '/':
+                    skip_while(input_file, [](int c) { return c != '\n'; });
+                    break;
+
+                case '*':
+                    char ch;
+                    input_file >> ch;
+
+                    do
+                    {
+                        skip_while(input_file, [](int c) { return c != '*' && c != '\n'; });
+
+                        if (input_file.peek() == '\n')
+                            ++line;
+
+                        input_file >> ch;
+                    }
+                    while (input_file.peek() != '/' && !input_file.eof());
+
+                    if (input_file.eof())
+                    {
+                        errors.push_back(format_error("Unterminated block comment.", comment_start_line));
+                        return;
+                    }
+
+                    input_file >> ch; // consume '/'
+                    break;
+
+                default:
+                    report_unexpected_character(static_cast<char>(next), comment_start_line, errors);
+                    break;
+            }
+        }
     }
 
     std::vector<token> scan(std::ifstream& input_file)
@@ -296,34 +342,7 @@ namespace json::scanner
                     break;
 
                 case '/':
-                    switch (input_file.peek())
-                    {
-                        case '/':
-                            skip_while(input_file, [](int c) { return c != '\n'; });
-                            break;
-
-                        case '*':
-                            input_file >> ch;
-
-                            do
-                            {
-                                skip_while(input_file, [](int c) { return c != '*'; });
-                                if (input_file.peek() == '*')
-                                    input_file >> ch;
-                            }
-                            while (input_file.peek() != '/' && !input_file.eof());
-
-                            if (input_file.peek() == '/')
-                                input_file >> ch;
-
-                            // todo: report unterminated block comments
-
-                            break;
-
-                        default:
-                            report_unexpected_character(ch, line, errors);
-                            break;
-                    }
+                    skip_comment(input_file, line, errors);
                     break;
 
                 case ' ':
