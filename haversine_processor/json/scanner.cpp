@@ -70,6 +70,11 @@ namespace json::scanner
             return input_file.eof();
         }
 
+        bool is_hex_digit(char ch)
+        {
+            return (ch >= '0' && ch <= '9') || (ch >= 'A' && ch <= 'F') || (ch >= 'a' && ch <= 'f');
+        }
+
         char read_escape_sequence(std::ifstream& input_file, int line, std::vector<std::string>& errors)
         {
             char ch;
