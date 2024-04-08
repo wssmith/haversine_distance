@@ -123,18 +123,11 @@ namespace json::scanner
                     if (ch == 'u')
                     {
                         std::string hex_digits;
-                        hex_digits.reserve(4); // not really necessary since the default is higher
 
                         bool found_unicode = true;
                         for (int i = 0; i < 4; ++i)
                         {
-                            if (reached_end_of_file(input_file))
-                            {
-                                found_unicode = false;
-                                break;
-                            }
-
-                            if (!is_hex_digit(input_file.peek()))
+                            if (reached_end_of_file(input_file) || !is_hex_digit(input_file.peek()))
                             {
                                 found_unicode = false;
                                 break;
