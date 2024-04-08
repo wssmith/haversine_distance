@@ -70,16 +70,13 @@ namespace json::scanner
             return input_file.eof();
         }
 
-        bool is_hex_digit(char ch)
+        bool is_hex_digit(int ch)
         {
             return (ch >= '0' && ch <= '9') || (ch >= 'A' && ch <= 'F') || (ch >= 'a' && ch <= 'f');
         }
 
-        char read_escape_sequence(std::ifstream& input_file, int line, std::vector<std::string>& errors)
+        char read_escape_sequence(char ch, int line, std::vector<std::string>& errors)
         {
-            char ch;
-            input_file >> ch;
-
             switch (ch)
             {
                 case '"': case '\\': case '/':
@@ -95,7 +92,6 @@ namespace json::scanner
                 case 't':
                     return '\t';
 
-                case 'u': // unicode escape characters are not supported
                 default:
                     errors.push_back(format_error("Unrecognized escape character '\\"s + ch + "'.", line));
                     return ch;
@@ -122,10 +118,50 @@ namespace json::scanner
                     if (reached_end_of_file(input_file))
                         break;
 
-                    ch = read_escape_sequence(input_file, line, errors);
-                }
+                    input_file >> ch;
 
-                builder << ch;
+                    if (ch == 'u')
+                    {
+                        std::string hex_digits;
+                        hex_digits.reserve(4); // not really necessary since the default is higher
+
+                        bool found_unicode = true;
+                        for (int i = 0; i < 4; ++i)
+                        {
+                            if (reached_end_of_file(input_file))
+                            {
+                                found_unicode = false;
+                                break;
+                            }
+
+                            if (!is_hex_digit(input_file.peek()))
+                            {
+                                found_unicode = false;
+                                break;
+                            }
+
+                            input_file >> ch;
+                            hex_digits += ch;
+                        }
+
+                        if (!found_unicode)
+                        {
+                            errors.push_back(format_error("Expected 4 hexadecimal digits after '\\u'.", line));
+                            continue;
+                        }
+
+                        builder << "\\u" << hex_digits; // leaving the escape sequence as is, since we aren't supporting utf-16
+                    }
+                    else
+                    {
+                        ch = read_escape_sequence(ch, line, errors);
+                        builder << ch;
+                    }
+                }
+                else
+                {
+                    builder << ch;
+                }
             }
 
             if (auto next = input_file.peek(); input_file.eof() || next != '"')
