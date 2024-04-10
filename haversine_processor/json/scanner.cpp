@@ -296,7 +296,7 @@ namespace json::scanner
 
                         input_file >> ch;
                     }
-                    while (input_file.peek() != '/' && !input_file.eof());
+                    while (!(ch == '*' && input_file.peek() == '/') && !input_file.eof());
 
                     if (input_file.eof())
                     {
