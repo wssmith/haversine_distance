@@ -23,20 +23,20 @@ namespace json::parser
         json_array parse_array(token_iterator& iter, token_span token_view, std::vector<std::string>& errors);
         json_element parse_element(token_iterator& iter, token_span token_view, std::vector<std::string>& errors);
 
-        void peek(const token_iterator& iter, token_span token_view, token& t)
+        const token* peek(const token_iterator& iter, token_span token_view)
         {
             if (iter >= token_view.end())
                 throw std::exception{ "Cannot peek out-of-range token." };
 
-            t = *iter;
+            return &*iter;
         }
 
-        void read_and_advance(token_iterator& iter, token_span token_view, token& t)
+        const token* read_and_advance(token_iterator& iter, token_span token_view)
         {
             if (iter >= token_view.end())
                 throw std::exception{ "Cannot read out-of-range token." };
 
-            t = *iter++;
+            return &*iter++;
         }
 
         void advance(token_iterator& iter, token_span token_view)
@@ -57,14 +57,13 @@ namespace json::parser
 
         json_member parse_member(token_iterator& iter, token_span token_view, std::vector<std::string>& errors)
         {
-            token t;
-            read_and_advance(iter, token_view, t);
-            const auto key = std::get<std::string>(t.literal);
+            const token* t = read_and_advance(iter, token_view);
+            const auto key = std::get<std::string>(t->literal);
 
-            read_and_advance(iter, token_view, t);
-            if (t.type != token_type::colon)
+            t = read_and_advance(iter, token_view);
+            if (t->type != token_type::colon)
             {
-                errors.push_back(format_error("Unexpected character after member name. Expected ':'. Found '" + t.lexeme + "'.", t.line));
+                errors.push_back(format_error("Unexpected character after member name. Expected ':'. Found '" + t->lexeme + "'.", t->line));
             }
 
             const json_element element = parse_element(iter, token_view, errors);
@@ -77,16 +76,16 @@ namespace json::parser
             json_object obj;
             std::unordered_set<std::string> unique_keys;
 
-            token t;
             constexpr int no_previous_line = -1;
             int previous_line = no_previous_line;
             bool expecting_member = false;
             bool done = false;
+
             while (!done)
             {
-                read_and_advance(iter, token_view, t);
+                const token* t = read_and_advance(iter, token_view);
 
-                switch (t.type)
+                switch (t->type)
                 {
                     case token_type::right_object_brace:
                     {
@@ -100,20 +99,18 @@ namespace json::parser
                     case token_type::string:
                     {
                         if (!expecting_member && previous_line != no_previous_line)
-                            errors.push_back(format_error("Expected a comma after the previous member.", t.line));
+                            errors.push_back(format_error("Expected a comma after the previous member.", t->line));
 
                         back_up(iter, token_view);
                         auto member = parse_member(iter, token_view, errors);
                         obj.members.push_back(member);
 
                         if (unique_keys.contains(member.key))
-                            errors.push_back(format_error("Object has a duplicate key '" + member.key + "'.", t.line));
+                            errors.push_back(format_error("Object has a duplicate key '" + member.key + "'.", t->line));
                         else
                             unique_keys.insert(member.key);
 
-                        token next;
-                        peek(iter, token_view, next);
-                        if (next.type == token_type::comma)
+                        if (const token* next = peek(iter, token_view); next->type == token_type::comma)
                         {
                             expecting_member = true;
                             advance(iter, token_view);
@@ -127,11 +124,11 @@ namespace json::parser
                     }
 
                     default:
-                        errors.push_back(format_error("Unexpected token '" + t.lexeme + "' found inside object.", t.line));
+                        errors.push_back(format_error("Unexpected token '" + t->lexeme + "' found inside object.", t->line));
                         break;
                 }
 
-                previous_line = t.line;
+                previous_line = t->line;
             }
 
             return obj;
@@ -141,16 +138,16 @@ namespace json::parser
         {
             json_array list;
 
-            token t;
             constexpr int no_previous_line = -1;
             int previous_line = no_previous_line;
             bool expecting_element = false;
             bool done = false;
+
             while (!done)
             {
-                peek(iter, token_view, t);
+                const token* t = peek(iter, token_view);
 
-                switch (t.type)
+                switch (t->type)
                 {
                     case token_type::right_array_brace:
                     {
@@ -166,14 +163,12 @@ namespace json::parser
                     default:
                     {
                         if (!expecting_element && previous_line != no_previous_line)
-                            errors.push_back(format_error("Expected a comma after the previous element.", t.line));
+                            errors.push_back(format_error("Expected a comma after the previous element.", t->line));
 
                         json_element element = parse_element(iter, token_view, errors);
                         list.elements.push_back(element);
 
-                        token next;
-                        peek(iter, token_view, next);
-                        if (next.type == token_type::comma)
+                        if (const token* next = peek(iter, token_view); next->type == token_type::comma)
                         {
                             expecting_element = true;
                             advance(iter, token_view);
@@ -185,7 +180,7 @@ namespace json::parser
                         }
                     }
 
-                    previous_line = t.line;
+                    previous_line = t->line;
                 }
             }
 
@@ -194,10 +189,9 @@ namespace json::parser
 
         json_element parse_element(token_iterator& iter, token_span token_view, std::vector<std::string>& errors)
         {
-            token t;
-            read_and_advance(iter, token_view, t);
+            const token* t = read_and_advance(iter, token_view);
 
-            switch (t.type)
+            switch (t->type)
             {
                 case token_type::left_object_brace:
                     return { parse_object(iter, token_view, errors) };
@@ -206,13 +200,13 @@ namespace json::parser
                     return { parse_array(iter, token_view, errors) };
 
                 case token_type::string:
-                    return { std::get<std::string>(t.literal) };
+                    return { std::get<std::string>(t->literal) };
 
                 case token_type::number_integer:
-                    return { std::get<integer_literal>(t.literal) };
+                    return { std::get<integer_literal>(t->literal) };
 
                 case token_type::number_float:
-                    return { std::get<float_literal>(t.literal) };
+                    return { std::get<float_literal>(t->literal) };
 
                 case token_type::boolean_false:
                     return { false };
@@ -225,7 +219,7 @@ namespace json::parser
 
                 case token_type::eof:
                 default:
-                    errors.push_back(format_error("Unexpected token '" + t.lexeme + "' while parsing element.", t.line));
+                    errors.push_back(format_error("Unexpected token '" + t->lexeme + "' while parsing element.", t->line));
                     break;
             }
 
