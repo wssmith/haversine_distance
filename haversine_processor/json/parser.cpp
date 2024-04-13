@@ -78,7 +78,8 @@ namespace json::parser
             std::unordered_set<std::string> unique_keys;
 
             token t;
-            int previous_line = 0;
+            constexpr int no_previous_line = -1;
+            int previous_line = no_previous_line;
             bool expecting_member = false;
             bool done = false;
             while (!done)
@@ -98,6 +99,9 @@ namespace json::parser
 
                     case token_type::string:
                     {
+                        if (!expecting_member && previous_line != no_previous_line)
+                            errors.push_back(format_error("Expected a comma after the previous member.", t.line));
+
                         back_up(iter, token_view);
                         auto member = parse_member(iter, token_view, errors);
                         obj.members.push_back(member);
@@ -107,11 +111,13 @@ namespace json::parser
                         else
                             unique_keys.insert(member.key);
 
-                        peek(iter, token_view, t);
-                        if (t.type == token_type::comma)
+                        token next;
+                        peek(iter, token_view, next);
+                        if (next.type == token_type::comma)
                         {
                             expecting_member = true;
                             advance(iter, token_view);
+                            t = next;
                         }
                         else
                         {
@@ -136,7 +142,8 @@ namespace json::parser
             json_array list;
 
             token t;
-            int previous_line = 0;
+            constexpr int no_previous_line = -1;
+            int previous_line = no_previous_line;
             bool expecting_element = false;
             bool done = false;
             while (!done)
@@ -158,14 +165,19 @@ namespace json::parser
 
                     default:
                     {
+                        if (!expecting_element && previous_line != no_previous_line)
+                            errors.push_back(format_error("Expected a comma after the previous element.", t.line));
+
                         json_element element = parse_element(iter, token_view, errors);
                         list.elements.push_back(element);
 
-                        peek(iter, token_view, t);
-                        if (t.type == token_type::comma)
+                        token next;
+                        peek(iter, token_view, next);
+                        if (next.type == token_type::comma)
                         {
                             expecting_element = true;
                             advance(iter, token_view);
+                            t = next;
                         }
                         else
                         {
