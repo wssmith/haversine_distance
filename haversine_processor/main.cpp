@@ -135,30 +135,26 @@ int main(int argc, char* argv[])
 
             for (const auto& [name, value] : *point_pair)
             {
-                if (name.size() == 2)
-                {
-                    switch (name[0])
-                    {
-                        case 'x':
-                        {
-                            switch (name[1])
-                            {
-                                case '0': p_x0 = value.as_number(); break;
-                                case '1': p_x1 = value.as_number(); break;
-                            }
-                            break;
-                        }
+                if (name.size() != 2)
+                    continue;
 
-                        case 'y':
+                switch (name[0])
+                {
+                    case 'x':
+                        switch (name[1])
                         {
-                            switch (name[1])
-                            {
-                                case '0': p_y0 = value.as_number(); break;
-                                case '1': p_y1 = value.as_number(); break;
-                            }
-                            break;
+                            case '0': p_x0 = value.as_number(); break;
+                            case '1': p_x1 = value.as_number(); break;
                         }
-                    }
+                        break;
+
+                    case 'y':
+                        switch (name[1])
+                        {
+                            case '0': p_y0 = value.as_number(); break;
+                            case '1': p_y1 = value.as_number(); break;
+                        }
+                        break;
                 }
             }
 
