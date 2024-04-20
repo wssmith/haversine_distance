@@ -1,3 +1,4 @@
+#include <chrono>
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
@@ -29,9 +30,6 @@ namespace
 
     double read_reference_distance(const std::string& path, size_t expected_points)
     {
-        //std::vector<double> data;
-        //data.reserve(expected_points);
-
         std::ifstream input_file{ path, std::ios::binary };
 
         if (!input_file)
@@ -43,19 +41,13 @@ namespace
         {
             input_file.read(reinterpret_cast<char*>(&distance), sizeof(decltype(distance)));
             ++distance_count;
-            //data.push_back(distance);
         }
         distance_count -= (distance_count > 0);
 
-        const double average_distance = distance;
-        //const double average_distance = data.back();
-        //data.pop_back();
-
-        //if (data.size() != expected_points)
         if (distance_count != expected_points)
             throw std::exception{ "The binary answers file and input JSON do not have the same number of point pairs." };
 
-        return average_distance;
+        return distance;
     }
 }
 
@@ -101,9 +93,21 @@ int main(int argc, char* argv[])
         std::cout << '\n';
 
         // deserialize input json
+        const auto start_overall{ std::chrono::steady_clock::now() };
+        const auto start_deserialize = start_overall;
+
         using namespace json;
-        const json_document document = deserialize_json(app_args.input_path);
+        std::chrono::milliseconds scan_time;
+        std::chrono::milliseconds parse_time;
+        const json_document document = deserialize_json(app_args.input_path, scan_time, parse_time);
+
+        const auto end_deserialize{ std::chrono::steady_clock::now() };
+        const auto start_print = end_deserialize;
+
         std::cout << std::setprecision(13) << document << "\n\n";
+
+        const auto end_print{ std::chrono::steady_clock::now() };
+        const auto start_calculate = end_print;
 
         const json_object* root = document.as<json_object>();
         if (!root)
@@ -115,9 +119,6 @@ int main(int argc, char* argv[])
 
         // calculate average haversine distance
         const size_t point_pair_count = point_pairs->size();
-        //std::vector<double> distances;
-        //distances.reserve(point_pair_count);
-
         constexpr long long max_pair_count = 1ULL << 30;
         if (point_pair_count > max_pair_count)
             throw std::exception{ "The input JSON has too many point pairs." };
@@ -172,13 +173,11 @@ int main(int argc, char* argv[])
             globe_point p2{ .x = *p_x1, .y = *p_y1 };
 
             double distance = haversine_distance(p1, p2);
-            //distances.push_back(distance);
             average_distance += sum_coeff * distance;
             ++pair_count;
         }
-
-        // calculate the average distance
-        //const double average_distance = std::accumulate(distances.begin(), distances.end(), 0.0) / (1.0 * distances.size());
+        const auto end_calculate{ std::chrono::steady_clock::now() };
+        const auto start_comparison = end_calculate;
 
         // read reference binary file
         double reference_distance = 0.0;
@@ -188,10 +187,11 @@ int main(int argc, char* argv[])
             reference_distance = read_reference_distance(app_args.reference_path, point_pair_count);
             distance_difference = std::abs(average_distance - reference_distance);
         }
+        const auto end_comparison{ std::chrono::steady_clock::now() };
+        const auto end_overall = end_comparison;
 
         // print results
         std::cout << std::format(std::locale("en_US"), "Input size: {:Ld} bytes\n", input_file_size);
-        //std::cout << std::format(std::locale("en_US"), "Pair count: {:Ld}\n", distances.size());
         std::cout << std::format(std::locale("en_US"), "Pair count: {:Ld}\n", pair_count);
         std::cout << std::format("Haversine sum: {:.16f}\n\n", average_distance);
 
@@ -199,8 +199,26 @@ int main(int argc, char* argv[])
         {
             std::cout << "Validation:\n";
             std::cout << std::format("Reference sum: {:.16f}\n", reference_distance);
-            std::cout << std::format("Difference: {:.16f}\n", distance_difference);
+            std::cout << std::format("Difference: {:.16f}\n\n", distance_difference);
         }
+
+        const auto deserialize_time = std::chrono::duration_cast<std::chrono::milliseconds>(end_deserialize - start_deserialize);
+        const auto print_time = std::chrono::duration_cast<std::chrono::milliseconds>(end_print - start_print);
+        const auto calculate_time = std::chrono::duration_cast<std::chrono::milliseconds>(end_calculate - start_calculate);
+        const auto comparison_time = std::chrono::duration_cast<std::chrono::milliseconds>(end_comparison - start_comparison);
+        const auto overall_time = std::chrono::duration_cast<std::chrono::milliseconds>(end_overall - start_overall);
+
+        std::cout << "Performance:\n";
+        std::cout << "Scanning completed in " << scan_time << '\n';
+        std::cout << "Parsing completed in " << parse_time << '\n';
+        std::cout << "Overall deserialized JSON in " << deserialize_time << '\n';
+        std::cout << "Pretty-printed JSON in " << print_time << '\n';
+        std::cout << "Calculated average distance in " << calculate_time << '\n';
+
+        if (app_args.reference_path)
+            std::cout << "Read binary reference file in " << comparison_time << '\n';
+
+        std::cout << "Overall finished in " << overall_time << '\n';
     }
     catch (std::exception& ex)
     {
