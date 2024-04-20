@@ -310,7 +310,12 @@ int main(int argc, char* argv[])
         std::cout << " done.\n\n";
 
         // calculate the average distance
-        const double average_distance = std::accumulate(distances.begin(), distances.end(), 0.0) / (1.0 * distances.size());
+        const double sum_coef = 1.0 / distances.size();
+        double average_distance = 0.0;
+        for (double dist : distances)
+            average_distance += sum_coef * dist;
+
+        //const double average_distance = std::accumulate(distances.begin(), distances.end(), 0.0) / (1.0 * distances.size());
 
         // summarize the results
         std::cout << "Method: " << (app_args.cluster_mode ? "cluster" : "uniform") << '\n';

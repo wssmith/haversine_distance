@@ -29,25 +29,30 @@ namespace
 
     double read_reference_distance(const std::string& path, size_t expected_points)
     {
-        std::vector<double> data;
-        data.reserve(expected_points);
+        //std::vector<double> data;
+        //data.reserve(expected_points);
 
         std::ifstream input_file{ path, std::ios::binary };
 
         if (!input_file)
             throw std::exception{ "Cannot open reference binary file." };
 
-        for (auto i = 0LL; input_file.peek() && !input_file.eof(); ++i)
+        int distance_count = 0;
+        double distance = 0.0;
+        while (input_file.peek() && !input_file.eof())
         {
-            double distance = 0.0;
             input_file.read(reinterpret_cast<char*>(&distance), sizeof(decltype(distance)));
-            data.push_back(distance);
+            ++distance_count;
+            //data.push_back(distance);
         }
+        distance_count -= (distance_count > 0);
 
-        const double average_distance = data.back();
-        data.pop_back();
+        const double average_distance = distance;
+        //const double average_distance = data.back();
+        //data.pop_back();
 
-        if (data.size() != expected_points)
+        //if (data.size() != expected_points)
+        if (distance_count != expected_points)
             throw std::exception{ "The binary answers file and input JSON do not have the same number of point pairs." };
 
         return average_distance;
@@ -110,14 +115,16 @@ int main(int argc, char* argv[])
 
         // calculate average haversine distance
         const size_t point_pair_count = point_pairs->size();
-        std::vector<double> distances;
-        distances.reserve(point_pair_count);
+        //std::vector<double> distances;
+        //distances.reserve(point_pair_count);
 
         constexpr long long max_pair_count = 1ULL << 30;
         if (point_pair_count > max_pair_count)
             throw std::exception{ "The input JSON has too many point pairs." };
 
-        const double sum_coeff = 1.0 / distances.size();
+        const double sum_coeff = 1.0 / point_pair_count;
+        double average_distance = 0.0;
+        int pair_count = 0;
 
         for (const json_element& pair_element : *point_pairs)
         {
@@ -165,11 +172,13 @@ int main(int argc, char* argv[])
             globe_point p2{ .x = *p_x1, .y = *p_y1 };
 
             double distance = haversine_distance(p1, p2);
-            distances.push_back(distance);
+            //distances.push_back(distance);
+            average_distance += sum_coeff * distance;
+            ++pair_count;
         }
 
         // calculate the average distance
-        const double average_distance = std::accumulate(distances.begin(), distances.end(), 0.0) / (1.0 * distances.size());
+        //const double average_distance = std::accumulate(distances.begin(), distances.end(), 0.0) / (1.0 * distances.size());
 
         // read reference binary file
         double reference_distance = 0.0;
@@ -182,7 +191,8 @@ int main(int argc, char* argv[])
 
         // print results
         std::cout << std::format(std::locale("en_US"), "Input size: {:Ld} bytes\n", input_file_size);
-        std::cout << std::format(std::locale("en_US"), "Pair count: {:Ld}\n", distances.size());
+        //std::cout << std::format(std::locale("en_US"), "Pair count: {:Ld}\n", distances.size());
+        std::cout << std::format(std::locale("en_US"), "Pair count: {:Ld}\n", pair_count);
         std::cout << std::format("Haversine sum: {:.16f}\n\n", average_distance);
 
         if (app_args.reference_path)
