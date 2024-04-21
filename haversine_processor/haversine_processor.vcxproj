@@ -142,6 +142,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="benchmarking.hpp" />
     <ClInclude Include="haversine_formula.hpp" />
     <ClInclude Include="json\container_utils.hpp" />
     <ClInclude Include="json\json.hpp" />

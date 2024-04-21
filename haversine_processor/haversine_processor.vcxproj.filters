@@ -80,6 +80,9 @@
     <ClInclude Include="haversine_formula.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="benchmarking.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\haversine_answers.f64">
