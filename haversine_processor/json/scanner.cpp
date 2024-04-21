@@ -109,7 +109,7 @@ namespace json::scanner
                 constexpr char min_char = 0x20;
                 if (ch < min_char)
                 {
-                    errors.push_back(format_error("Invalid character. Code point: " + std::to_string(min_char), line));
+                    errors.push_back(format_error("Invalid character. Code point: " + std::to_string(ch), line));
                     continue;
                 }
 
