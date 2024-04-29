@@ -7,10 +7,10 @@
 #include <format>
 #include <fstream>
 #include <iostream>
-#include <numeric>
 #include <optional>
 #include <string>
 
+#include "platform_metrics.hpp"
 #include "haversine_formula.hpp"
 #include "json/json.hpp"
 
@@ -35,12 +35,13 @@ namespace
         if (!input_file)
             throw std::exception{ "Cannot open reference binary file." };
 
-        int distance_count = 0;
+        size_t distance_count = 0;
         double distance = 0.0;
-        while (input_file.peek() && !input_file.eof())
+        while (input_file && !input_file.eof())
         {
             input_file.read(reinterpret_cast<char*>(&distance), sizeof(decltype(distance)));
             ++distance_count;
+            input_file.peek();
         }
         distance_count -= (distance_count > 0);
 
@@ -95,6 +96,9 @@ int main(int argc, char* argv[])
         // deserialize input json
         const auto start_overall{ std::chrono::steady_clock::now() };
         const auto start_deserialize = start_overall;
+
+        const uint64_t cpu_freq = estimate_cpu_timer_freq();
+        const auto start_overall_cpu = read_cpu_timer();
 
         using namespace json;
         std::chrono::milliseconds scan_time;
@@ -189,6 +193,7 @@ int main(int argc, char* argv[])
         }
         const auto end_comparison{ std::chrono::steady_clock::now() };
         const auto end_overall = end_comparison;
+        uint64_t end_overall_cpu = read_cpu_timer();
 
         // print results
         std::cout << std::format(std::locale("en_US"), "Input size: {:Ld} bytes\n", input_file_size);
@@ -198,8 +203,8 @@ int main(int argc, char* argv[])
         if (app_args.reference_path)
         {
             std::cout << "Validation:\n";
-            std::cout << std::format("Reference sum: {:.16f}\n", reference_distance);
-            std::cout << std::format("Difference: {:.16f}\n\n", distance_difference);
+            std::cout << std::format("  Reference sum: {:.16f}\n", reference_distance);
+            std::cout << std::format("  Difference: {:.16f}\n\n", distance_difference);
         }
 
         const auto deserialize_time = std::chrono::duration_cast<std::chrono::milliseconds>(end_deserialize - start_deserialize);
@@ -208,17 +213,21 @@ int main(int argc, char* argv[])
         const auto comparison_time = std::chrono::duration_cast<std::chrono::milliseconds>(end_comparison - start_comparison);
         const auto overall_time = std::chrono::duration_cast<std::chrono::milliseconds>(end_overall - start_overall);
 
+        const uint64_t overall_cpu = end_overall_cpu - start_overall_cpu;
+        const double overall_time_cpu_ms = 1000.0 * overall_cpu / cpu_freq;
+
         std::cout << "Performance:\n";
-        std::cout << "Scanning completed in " << scan_time << '\n';
-        std::cout << "Parsing completed in " << parse_time << '\n';
-        std::cout << "Overall deserialized JSON in " << deserialize_time << '\n';
-        std::cout << "Pretty-printed JSON in " << print_time << '\n';
-        std::cout << "Calculated average distance in " << calculate_time << '\n';
+        std::cout << "  Scanning completed in " << scan_time << '\n';
+        std::cout << "  Parsing completed in " << parse_time << '\n';
+        std::cout << "  Overall deserialized JSON in " << deserialize_time << '\n';
+        std::cout << "  Pretty-printed JSON in " << print_time << '\n';
+        std::cout << "  Calculated average distance in " << calculate_time << '\n';
 
         if (app_args.reference_path)
-            std::cout << "Read binary reference file in " << comparison_time << '\n';
+            std::cout << "  Read binary reference file in " << comparison_time << '\n';
 
-        std::cout << "Overall finished in " << overall_time << '\n';
+        std::cout << "  Overall finished in " << overall_time << '\n';
+        std::cout << "  (CPU) Overall finished in " << overall_time_cpu_ms << "ms\n";
     }
     catch (std::exception& ex)
     {

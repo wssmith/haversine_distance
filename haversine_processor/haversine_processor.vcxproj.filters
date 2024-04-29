@@ -80,7 +80,10 @@
     <ClInclude Include="haversine_formula.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="benchmarking.hpp">
+    <ClInclude Include="platform_metrics.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="profiler.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

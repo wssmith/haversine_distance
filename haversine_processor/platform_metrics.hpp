@@ -1,5 +1,5 @@
-﻿#ifndef WS_BENCHMARKING_HPP
-#define WS_BENCHMARKING_HPP
+﻿#ifndef WS_PLATFORMMETRICS_HPP
+#define WS_PLATFORMMETRICS_HPP
 
 #include <cstdint>
 
@@ -70,7 +70,7 @@ inline uint64_t estimate_cpu_timer_freq()
 	uint64_t cpu_freq = 0;
 	if (os_elapsed)
 	{
-		cpu_freq = os_freq * cpu_elapsed / os_elapsed;
+		cpu_freq = os_freq * (cpu_elapsed / os_elapsed);
 	}
 
 	return cpu_freq;
