@@ -8,7 +8,7 @@
 
 namespace json
 {
-    json_document deserialize_json(const std::string& filepath, std::chrono::milliseconds& scan_time, std::chrono::milliseconds& parse_time);
+    json_document deserialize_json(const std::string& filepath);
 }
 
 #endif
