@@ -11,6 +11,8 @@
 #include "token.hpp"
 #include "utilities.hpp"
 
+#include "../profiler.hpp"
+
 namespace json::parser
 {
     namespace
@@ -229,6 +231,8 @@ namespace json::parser
 
     json_element parse(const std::vector<token>& tokens)
     {
+        profiler parse_activity{ "parse" };
+
         const std::span token_view{ tokens.cbegin(), tokens.cend() };
         token_iterator iter = token_view.begin();
 

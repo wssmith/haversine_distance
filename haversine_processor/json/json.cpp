@@ -10,10 +10,14 @@
 #include "token.hpp"
 #include "parser.hpp"
 
+#include "../profiler.hpp"
+
 namespace json
 {
     json_document deserialize_json(const std::string& filepath)
     {
+        profiler deserialize_activity{ "deserialize" };
+
         if (!std::filesystem::exists(filepath))
             throw std::exception{ "JSON file does not exist." };
 
@@ -24,8 +28,6 @@ namespace json
         const std::vector<token> tokens = scanner::scan(json_file);
         json_file.close();
 
-        auto document = parser::parse(tokens);
-
-        return document;
+        return parser::parse(tokens);
     }
 }

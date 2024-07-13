@@ -10,9 +10,10 @@
 #include <optional>
 #include <string>
 
-#include "platform_metrics.hpp"
 #include "haversine_formula.hpp"
 #include "json/json.hpp"
+#include "platform_metrics.hpp"
+#include "profiler.hpp"
 
 namespace
 {
@@ -96,90 +97,107 @@ int main(int argc, char* argv[])
         // deserialize input json
         const uint64_t cpu_freq = estimate_cpu_timer_freq();
         const auto start_overall_cpu = read_cpu_timer();
+        uint64_t end_overall_cpu = start_overall_cpu;
 
-        using namespace json;
-        const json_document document = deserialize_json(app_args.input_path);
-
-        std::cout << std::setprecision(13) << document << "\n\n";
-
-        const json_object* root = document.as<json_object>();
-        if (!root)
-            throw std::exception{ "The JSON root element is not an object." };
-
-        const json_array* point_pairs = root->get_as<json_array>("pairs");
-        if (!point_pairs)
-            throw std::exception{ "Could not find array member 'pairs'." };
-
-        // calculate average haversine distance
-        const size_t point_pair_count = point_pairs->size();
-        constexpr long long max_pair_count = 1ULL << 30;
-        if (point_pair_count > max_pair_count)
-            throw std::exception{ "The input JSON has too many point pairs." };
-
-        const double sum_coeff = 1.0 / point_pair_count;
+        double reference_distance = 0.0;
+        double distance_difference = 0.0;
         double average_distance = 0.0;
         int pair_count = 0;
-
-        for (const json_element& pair_element : *point_pairs)
         {
-            const auto* point_pair = pair_element.as<json_object>();
-            if (!point_pair)
-                throw std::exception{ "Unexpected non-object found in pair array." };
+            profiler overall_activity{ "overall" };
 
-            if (point_pair->size() != 4)
-                throw std::exception{ "Point pair objects must have exactly 4 members: x0, y0, x1, y1" };
+            using namespace json;
+            const json_document document = deserialize_json(app_args.input_path);
 
-            std::optional<float_literal> p_x0;
-            std::optional<float_literal> p_y0;
-            std::optional<float_literal> p_x1;
-            std::optional<float_literal> p_y1;
-
-            for (const auto& [name, value] : *point_pair)
             {
-                if (name.size() != 2)
-                    continue;
+                profiler print_activity{ "print" };
+                std::cout << std::setprecision(13) << document << "\n\n";
+            }
 
-                switch (name[0])
+            {
+                profiler calculate_activity{ "calculate" };
+
+                const json_object* root = document.as<json_object>();
+                if (!root)
+                    throw std::exception{ "The JSON root element is not an object." };
+
+                const json_array* point_pairs = root->get_as<json_array>("pairs");
+                if (!point_pairs)
+                    throw std::exception{ "Could not find array member 'pairs'." };
+
+                // calculate average haversine distance
+                const size_t point_pair_count = point_pairs->size();
+                constexpr long long max_pair_count = 1ULL << 30;
+                if (point_pair_count > max_pair_count)
+                    throw std::exception{ "The input JSON has too many point pairs." };
+
+                const double sum_coeff = 1.0 / point_pair_count;
+
+                for (const json_element& pair_element : *point_pairs)
                 {
-                    case 'x':
-                        switch (name[1])
+                    const auto* point_pair = pair_element.as<json_object>();
+                    if (!point_pair)
+                        throw std::exception{ "Unexpected non-object found in pair array." };
+
+                    if (point_pair->size() != 4)
+                        throw std::exception{ "Point pair objects must have exactly 4 members: x0, y0, x1, y1" };
+
+                    std::optional<float_literal> p_x0;
+                    std::optional<float_literal> p_y0;
+                    std::optional<float_literal> p_x1;
+                    std::optional<float_literal> p_y1;
+
+                    for (const auto& [name, value] : *point_pair)
+                    {
+                        if (name.size() != 2)
+                            continue;
+
+                        switch (name[0])
                         {
+                        case 'x':
+                            switch (name[1])
+                            {
                             case '0': p_x0 = value.as_number(); break;
                             case '1': p_x1 = value.as_number(); break;
-                        }
-                        break;
+                            }
+                            break;
 
-                    case 'y':
-                        switch (name[1])
-                        {
+                        case 'y':
+                            switch (name[1])
+                            {
                             case '0': p_y0 = value.as_number(); break;
                             case '1': p_y1 = value.as_number(); break;
+                            }
+                            break;
                         }
-                        break;
+                    }
+
+                    if (!p_x0 || !p_y0 || !p_x1 || !p_y1)
+                        throw std::exception{ "Could not find all 4 point pair members: x0, y0, x1, y1" };
+
+                    {
+                        profiler haversine_activity{ "haversine" };
+
+                        globe_point p1{ .x = *p_x0, .y = *p_y0 };
+                        globe_point p2{ .x = *p_x1, .y = *p_y1 };
+
+                        double distance = haversine_distance(p1, p2);
+                        average_distance += sum_coeff * distance;
+                    }
+
+                    ++pair_count;
                 }
             }
 
-            if (!p_x0 || !p_y0 || !p_x1 || !p_y1)
-                throw std::exception{ "Could not find all 4 point pair members: x0, y0, x1, y1" };
+            // read reference binary file
+            if (app_args.reference_path)
+            {
+                reference_distance = read_reference_distance(app_args.reference_path, pair_count);
+                distance_difference = std::abs(average_distance - reference_distance);
+            }
 
-            globe_point p1{ .x = *p_x0, .y = *p_y0 };
-            globe_point p2{ .x = *p_x1, .y = *p_y1 };
-
-            double distance = haversine_distance(p1, p2);
-            average_distance += sum_coeff * distance;
-            ++pair_count;
+            end_overall_cpu = read_cpu_timer();
         }
-
-        // read reference binary file
-        double reference_distance = 0.0;
-        double distance_difference = 0.0;
-        if (app_args.reference_path)
-        {
-            reference_distance = read_reference_distance(app_args.reference_path, point_pair_count);
-            distance_difference = std::abs(average_distance - reference_distance);
-        }
-
-        uint64_t end_overall_cpu = read_cpu_timer();
 
         // print results
         std::cout << std::format(std::locale("en_US"), "Input size: {:Ld} bytes\n", input_file_size);
@@ -196,6 +214,14 @@ int main(int argc, char* argv[])
         const uint64_t overall_cpu = end_overall_cpu - start_overall_cpu;
         const double overall_time_cpu_ms = 1000.0 * overall_cpu / cpu_freq;
 
+        double average_overall_profiler_duration = profiler::get_mean_duration("overall");
+        double average_scan_profiler_duration = profiler::get_mean_duration("scan");
+        double average_parse_profiler_duration = profiler::get_mean_duration("parse");
+
+        const double overall_time_profiler_cpu_ms = 1000.0 * average_overall_profiler_duration / cpu_freq;
+        const double scan_time_profiler_cpu_ms = 1000.0 * average_scan_profiler_duration / cpu_freq;
+        const double parse_time_profiler_cpu_ms = 1000.0 * average_parse_profiler_duration / cpu_freq;
+
         std::cout << "Performance:\n";
         //std::cout << "  Scanning completed in " << scan_time << '\n';
         //std::cout << "  Parsing completed in " << parse_time << '\n';
@@ -206,7 +232,10 @@ int main(int argc, char* argv[])
         //if (app_args.reference_path)
         //    std::cout << "  Read binary reference file in " << comparison_time << '\n';
 
-        std::cout << "  Overall finished in " << overall_time_cpu_ms << "ms\n";
+        std::cout << std::format("  (Legacy) Overall finished in {:.4f}ms\n", overall_time_cpu_ms);
+        std::cout << std::format("  Scan finished in {:.4f}ms\n", scan_time_profiler_cpu_ms);
+        std::cout << std::format("  Parse finished in {:.4f}ms\n", parse_time_profiler_cpu_ms);
+        std::cout << std::format("  Overall finished in {:.4f}ms\n", overall_time_profiler_cpu_ms);
     }
     catch (std::exception& ex)
     {

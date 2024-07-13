@@ -10,6 +10,8 @@
 #include "utilities.hpp"
 #include "token.hpp"
 
+#include "../profiler.hpp"
+
 namespace json::scanner
 {
     using namespace std::string_literals;
@@ -316,6 +318,8 @@ namespace json::scanner
 
     std::vector<token> scan(std::ifstream& input_file)
     {
+        profiler scan_activity{ "scan" };
+
         std::vector<token> tokens;
         std::vector<std::string> errors;
 

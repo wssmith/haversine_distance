@@ -6,7 +6,7 @@
 #include <streambuf>
 #include <string>
 
-class scoped_indent : public std::streambuf
+class scoped_indent final : public std::streambuf
 {
 public:
     explicit scoped_indent(std::ostream& dest, int indent = 2)
