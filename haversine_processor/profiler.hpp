@@ -26,13 +26,13 @@ public:
     {
         profile_block* new_block = nullptr;
         for (size_t i = 0; i < m_block_count; ++i)
-		{
-			if (std::strcmp(m_blocks[i].name, operation_name) == 0)
-			{
+        {
+            if (std::strcmp(m_blocks[i].name, operation_name) == 0)
+            {
                 new_block = &m_blocks[i];
-				break;
-			}
-		}
+                break;
+            }
+        }
 
         if (new_block == nullptr)
         {
