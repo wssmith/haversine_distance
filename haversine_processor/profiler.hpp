@@ -4,8 +4,6 @@
 #include <array>
 #include <cstdint>
 #include <exception>
-#include <numeric>
-#include <string>
 #include <vector>
 
 #include "platform_metrics.hpp"
