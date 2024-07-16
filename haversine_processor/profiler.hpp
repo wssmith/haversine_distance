@@ -1,6 +1,7 @@
 ﻿#ifndef WS_PROFILER_HPP
 #define WS_PROFILER_HPP
 
+#include <array>
 #include <cstdint>
 #include <exception>
 #include <numeric>
@@ -10,7 +11,12 @@
 
 #include "platform_metrics.hpp"
 
-// todo: add functions returning wall clock time
+struct profile_block
+{
+    const char* name;
+    uint64_t duration;
+    uint64_t hit_count;
+};
 
 // Records the duration of a block of code in CPU time. Not thread-safe.
 class profiler final
@@ -79,7 +85,8 @@ private:
     std::string m_operation_name;
     uint64_t m_start_time;
 
-    inline static std::unordered_map<std::string, std::vector<uint64_t>> m_profiles;
+    constexpr static size_t max_profiles = 1024;
+    inline static std::array<profile_block, max_profiles> m_profiles;
     inline static std::unordered_map<std::string, bool> m_active;
 };
 
