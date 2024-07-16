@@ -1,31 +1,55 @@
 ﻿#ifndef WS_PROFILER_HPP
 #define WS_PROFILER_HPP
 
+#include <array>
 #include <cstdint>
 #include <exception>
 #include <numeric>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 #include "platform_metrics.hpp"
 
-// todo: add functions returning wall clock time
+struct profile_block
+{
+    const char* name = nullptr;
+    profile_block* parent = nullptr;
+    uint64_t duration{};
+    uint64_t hit_count{};
+};
 
 // Records the duration of a block of code in CPU time. Not thread-safe.
 class profiler final
 {
 public:
-    explicit profiler(std::string operation_name)
-        : m_operation_name{ std::move(operation_name) }
+    explicit profiler(const char* operation_name)
     {
-        // prevent same-operation nesting
-        if (m_active[m_operation_name])
-            throw std::exception{ "Profiler does not allow same-operation nesting." };
+        profile_block* new_block = nullptr;
+        for (size_t i = 0; i < m_block_count; ++i)
+		{
+			if (std::strcmp(m_blocks[i].name, operation_name) == 0)
+			{
+                new_block = &m_blocks[i];
+				break;
+			}
+		}
 
-        m_active[m_operation_name] = true;
+        if (new_block == nullptr)
+        {
+            if (m_block_count >= max_blocks)
+                throw std::exception{ "Too many profiler blocks" };
 
-        // start the timer
+            m_blocks[m_block_count] = profile_block
+            {
+                .name = operation_name,
+                .parent = m_current_block
+            };
+            new_block = &m_blocks[m_block_count];
+
+            ++m_block_count;
+        }
+
+        m_current_block = new_block;
         m_start_time = read_cpu_timer();
     }
 
@@ -34,15 +58,10 @@ public:
         const uint64_t end_time = read_cpu_timer();
         const uint64_t elapsed_time = end_time - m_start_time;
 
-        try
-        {
-            m_active[m_operation_name] = false;
-            m_profiles[m_operation_name].push_back(elapsed_time);
-        }
-        catch (std::exception& ex)
-        {
-            // discard the measurement when this fails
-        }
+        m_current_block->duration += elapsed_time;
+        m_current_block->hit_count += 1;
+
+        m_current_block = m_current_block->parent;
     }
 
     profiler(const profiler&) = delete;
@@ -50,37 +69,19 @@ public:
     profiler(profiler&&) noexcept = delete;
     profiler& operator=(profiler&&) noexcept = delete;
 
-    static uint64_t get_total_duration(const std::string& operation_name)
+    static std::vector<profile_block> get_profile_blocks()
     {
-        // todo: check if the profile exists
-
-        const std::vector<uint64_t>& profile = m_profiles[operation_name];
-        const uint64_t total_duration = std::accumulate(profile.begin(), profile.end(), 0ULL);
-        return total_duration;
-    }
-
-    static uint64_t get_execution_count(const std::string& operation_name)
-    {
-        // todo: check if the profile exists
-        // todo: combine get_total_duration and get_execution_count into a single function
-
-        return m_profiles[operation_name].size();
-    }
-
-    static double get_mean_duration(const std::string& operation_name)
-    {
-        const uint64_t total_duration = get_total_duration(operation_name);
-        const uint64_t execution_count = get_execution_count(operation_name);
-
-        return (1.0 * total_duration) / execution_count;
+        return std::vector<profile_block>{ m_blocks.begin(), m_blocks.begin() + m_block_count };
     }
 
 private:
-    std::string m_operation_name;
-    uint64_t m_start_time;
+    uint64_t m_start_time{};
+    
+    inline constexpr static size_t max_blocks = 1024;
+    inline static std::array<profile_block, max_blocks> m_blocks{};
+    inline static size_t m_block_count = 0;
 
-    inline static std::unordered_map<std::string, std::vector<uint64_t>> m_profiles;
-    inline static std::unordered_map<std::string, bool> m_active;
+    inline static profile_block* m_current_block = nullptr;
 };
 
 #endif

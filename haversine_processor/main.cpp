@@ -214,14 +214,6 @@ int main(int argc, char* argv[])
         const uint64_t overall_cpu = end_overall_cpu - start_overall_cpu;
         const double overall_time_cpu_ms = 1000.0 * overall_cpu / cpu_freq;
 
-        double average_overall_profiler_duration = profiler::get_mean_duration("overall");
-        double average_scan_profiler_duration = profiler::get_mean_duration("scan");
-        double average_parse_profiler_duration = profiler::get_mean_duration("parse");
-
-        const double overall_time_profiler_cpu_ms = 1000.0 * average_overall_profiler_duration / cpu_freq;
-        const double scan_time_profiler_cpu_ms = 1000.0 * average_scan_profiler_duration / cpu_freq;
-        const double parse_time_profiler_cpu_ms = 1000.0 * average_parse_profiler_duration / cpu_freq;
-
         std::cout << "Performance:\n";
         //std::cout << "  Scanning completed in " << scan_time << '\n';
         //std::cout << "  Parsing completed in " << parse_time << '\n';
@@ -233,9 +225,13 @@ int main(int argc, char* argv[])
         //    std::cout << "  Read binary reference file in " << comparison_time << '\n';
 
         std::cout << std::format("  (Legacy) Overall finished in {:.4f}ms\n", overall_time_cpu_ms);
-        std::cout << std::format("  Scan finished in {:.4f}ms\n", scan_time_profiler_cpu_ms);
-        std::cout << std::format("  Parse finished in {:.4f}ms\n", parse_time_profiler_cpu_ms);
-        std::cout << std::format("  Overall finished in {:.4f}ms\n", overall_time_profiler_cpu_ms);
+
+        std::vector<profile_block> profile_blocks = profiler::get_profile_blocks();
+        for (const profile_block& block : profile_blocks)
+        {
+            const double duration_ms = 1000.0 * block.duration / cpu_freq;
+            std::cout << std::format("  {} finished in {:.4f}ms\n", block.name, duration_ms);
+        }
     }
     catch (std::exception& ex)
     {
