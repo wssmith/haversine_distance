@@ -1,5 +1,6 @@
 ﻿#include "model.hpp"
 
+#include <cstddef>
 #include <ostream>
 #include <ranges>
 #include <string>

@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <array>
+#include <cstddef>
 #include <cstdlib>
 #include <exception>
 #include <filesystem>
@@ -7,7 +8,6 @@
 #include <format>
 #include <iostream>
 #include <locale>
-#include <numeric>
 #include <string>
 #include <vector>
 

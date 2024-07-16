@@ -2,6 +2,7 @@
 #define WS_RANDOMGENERATOR_HPP
 
 #include <concepts>
+#include <cstddef>
 #include <memory>
 #include <random>
 #include <utility>

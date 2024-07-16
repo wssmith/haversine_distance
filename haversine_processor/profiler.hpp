@@ -2,7 +2,9 @@
 #define WS_PROFILER_HPP
 
 #include <array>
+#include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <exception>
 #include <vector>
 
@@ -74,7 +76,7 @@ public:
 
 private:
     uint64_t m_start_time{};
-    
+
     inline constexpr static size_t max_blocks = 1024;
     inline static std::array<profile_block, max_blocks> m_blocks{};
     inline static size_t m_block_count = 0;
