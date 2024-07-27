@@ -318,7 +318,7 @@ namespace json::scanner
 
     std::vector<token> scan(std::ifstream& input_file)
     {
-        profiler scan_activity{ "scan" };
+        PROFILE_FUNCTION;
 
         std::vector<token> tokens;
         std::vector<std::string> errors;

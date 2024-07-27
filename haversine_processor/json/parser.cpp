@@ -231,7 +231,7 @@ namespace json::parser
 
     json_element parse(const std::vector<token>& tokens)
     {
-        profiler parse_activity{ "parse" };
+        PROFILE_FUNCTION;
 
         const std::span token_view{ tokens.cbegin(), tokens.cend() };
         token_iterator iter = token_view.begin();

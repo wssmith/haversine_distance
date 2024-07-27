@@ -10,6 +10,9 @@
 
 #include "platform_metrics.hpp"
 
+#define PROFILE_BLOCK(name) profiler activity{ (name) }
+#define PROFILE_FUNCTION PROFILE_BLOCK(__func__)
+
 struct profile_block
 {
     const char* name = nullptr;
@@ -36,7 +39,7 @@ public:
 
         if (new_block == nullptr)
         {
-            if (m_block_count >= max_blocks)
+            if (m_block_count >= m_blocks.size())
                 throw std::exception{ "Too many profiler blocks" };
 
             m_blocks[m_block_count] = profile_block
@@ -44,6 +47,7 @@ public:
                 .name = operation_name,
                 .parent = m_current_block
             };
+
             new_block = &m_blocks[m_block_count];
 
             ++m_block_count;

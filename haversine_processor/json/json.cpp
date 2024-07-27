@@ -16,7 +16,7 @@ namespace json
 {
     json_document deserialize_json(const std::string& filepath)
     {
-        profiler deserialize_activity{ "deserialize" };
+        PROFILE_FUNCTION;
 
         if (!std::filesystem::exists(filepath))
             throw std::exception{ "JSON file does not exist." };
