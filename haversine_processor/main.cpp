@@ -104,18 +104,18 @@ int main(int argc, char* argv[])
         double average_distance = 0.0;
         int pair_count = 0;
         {
-            profiler overall_activity{ "overall" };
+            PROFILE_BLOCK("overall");
 
             using namespace json;
             const json_document document = deserialize_json(app_args.input_path);
 
             {
-                profiler print_activity{ "print" };
+                PROFILE_BLOCK("print");
                 std::cout << std::setprecision(13) << document << "\n\n";
             }
 
             {
-                profiler calculate_activity{ "calculate" };
+                PROFILE_BLOCK("calculate");
 
                 const json_object* root = document.as<json_object>();
                 if (!root)
@@ -176,7 +176,7 @@ int main(int argc, char* argv[])
                         throw std::exception{ "Could not find all 4 point pair members: x0, y0, x1, y1" };
 
                     {
-                        profiler haversine_activity{ "haversine" };
+                        PROFILE_BLOCK("haversine");
 
                         globe_point p1{ .x = *p_x0, .y = *p_y0 };
                         globe_point p2{ .x = *p_x1, .y = *p_y1 };

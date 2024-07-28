@@ -10,7 +10,10 @@
 
 #include "platform_metrics.hpp"
 
-#define PROFILE_BLOCK(name) profiler activity{ (name) }
+#define CONCAT_CORE(a, b) a##b
+#define CONCAT(a, b) CONCAT_CORE(a, b)
+
+#define PROFILE_BLOCK(name) profiler CONCAT(activity, __LINE__){ (name) }
 #define PROFILE_FUNCTION PROFILE_BLOCK(__func__)
 
 struct profile_block
