@@ -68,6 +68,9 @@ public:
         m_current_block->duration += elapsed_time;
         m_current_block->hit_count += 1;
 
+        if (m_current_block->parent)
+        	m_current_block->parent->duration -= elapsed_time;
+
         m_current_block = m_current_block->parent;
     }
 
