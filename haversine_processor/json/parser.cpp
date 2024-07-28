@@ -59,6 +59,8 @@ namespace json::parser
 
         json_member parse_member(token_iterator& iter, token_span token_view, std::vector<std::string>& errors)
         {
+            PROFILE_FUNCTION;
+
             const token* t = read_and_advance(iter, token_view);
             const auto key = std::get<std::string>(t->literal);
 
@@ -75,6 +77,8 @@ namespace json::parser
 
         json_object parse_object(token_iterator& iter, token_span token_view, std::vector<std::string>& errors)
         {
+            PROFILE_FUNCTION;
+
             json_object obj;
             std::unordered_set<std::string> unique_keys;
 
@@ -138,6 +142,8 @@ namespace json::parser
 
         json_array parse_array(token_iterator& iter, token_span token_view, std::vector<std::string>& errors)
         {
+            PROFILE_FUNCTION;
+
             json_array list;
 
             constexpr int no_previous_line = -1;
@@ -191,6 +197,8 @@ namespace json::parser
 
         json_element parse_element(token_iterator& iter, token_span token_view, std::vector<std::string>& errors)
         {
+            PROFILE_FUNCTION;
+
             const token* t = read_and_advance(iter, token_view);
 
             switch (t->type)

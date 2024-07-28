@@ -175,15 +175,11 @@ int main(int argc, char* argv[])
                     if (!p_x0 || !p_y0 || !p_x1 || !p_y1)
                         throw std::exception{ "Could not find all 4 point pair members: x0, y0, x1, y1" };
 
-                    {
-                        PROFILE_BLOCK("haversine");
+                    globe_point p1{ .x = *p_x0, .y = *p_y0 };
+                    globe_point p2{ .x = *p_x1, .y = *p_y1 };
 
-                        globe_point p1{ .x = *p_x0, .y = *p_y0 };
-                        globe_point p2{ .x = *p_x1, .y = *p_y1 };
-
-                        double distance = haversine_distance(p1, p2);
-                        average_distance += sum_coeff * distance;
-                    }
+                    double distance = haversine_distance(p1, p2);
+                    average_distance += sum_coeff * distance;
 
                     ++pair_count;
                 }

@@ -16,10 +16,79 @@
 #define PROFILE_BLOCK(name) profiler CONCAT(activity, __LINE__){ (name) }
 #define PROFILE_FUNCTION PROFILE_BLOCK(__func__)
 
+template<typename T, size_t N>
+class profile_stack
+{
+public:
+    void push(T* block)
+    {
+        if (m_size >= N)
+            throw std::exception{ "Profile stack overflow" };
+
+        m_profiles[m_size] = block;
+        ++m_size;
+    }
+
+    T* pop()
+    {
+        if (m_size == 0)
+            throw std::exception{ "Profile stack underflow" };
+
+        --m_size;
+
+        return m_profiles[m_size];
+    }
+
+    T* top()
+    {
+        if (m_size == 0)
+            throw std::exception{ "Profile stack underflow" };
+
+        return m_profiles[m_size - 1];
+    }
+
+    T* operator[](size_t index)
+    {
+        if (index >= m_size || index < 0)
+            throw std::exception{ "Index out of bounds" };
+
+        return m_profiles[index];
+    }
+
+    size_t size() const
+    {
+        return m_size;
+    }
+
+    [[nodiscard]]
+    bool empty() const
+    {
+        return m_size == 0;
+    }
+
+    void clear()
+    {
+        m_size = 0;
+    }
+
+    T* begin()
+    {
+        return m_profiles[0];
+    }
+
+    T* end()
+    {
+        return m_profiles[m_size];
+    }
+
+private:
+    std::array<T*, N> m_profiles;
+    size_t m_size = 0;
+};
+
 struct profile_block
 {
     const char* name = nullptr;
-    profile_block* parent = nullptr; // todo: replace with a separate array of parents
     uint64_t duration{};
     uint64_t hit_count{};
 };
@@ -47,18 +116,19 @@ public:
 
             m_blocks[m_block_count] = profile_block
             {
-                .name = operation_name,
-                .parent = m_current_block
+                .name = operation_name
             };
 
             new_block = &m_blocks[m_block_count];
-
             ++m_block_count;
         }
 
+        if (m_current_block)
+            m_profile_stack.push(m_current_block);
+
         m_current_block = new_block;
 
-    	if (!m_profiling)
+        if (!m_profiling)
         {
             m_profiling = true;
             m_start_time = read_cpu_timer();
@@ -79,10 +149,16 @@ public:
         m_current_block->duration += elapsed_time;
         m_current_block->hit_count += 1;
 
-        if (m_current_block->parent)
-            m_current_block->parent->duration -= elapsed_time;
-
-        m_current_block = m_current_block->parent;
+        if (!m_profile_stack.empty())
+        {
+            profile_block* parent = m_profile_stack.pop();
+            parent->duration -= elapsed_time;
+            m_current_block = parent;
+        }
+        else
+        {
+            m_current_block = nullptr;
+        }
     }
 
     profiler(const profiler&) = delete;
@@ -110,6 +186,8 @@ private:
     inline constexpr static size_t max_blocks = 1024;
     inline static std::array<profile_block, max_blocks> m_blocks{};
     inline static size_t m_block_count = 0;
+
+    inline static profile_stack<profile_block, max_blocks> m_profile_stack{};
 
     inline static profile_block* m_current_block = nullptr;
 };
