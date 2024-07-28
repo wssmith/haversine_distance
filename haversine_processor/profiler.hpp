@@ -19,7 +19,7 @@
 struct profile_block
 {
     const char* name = nullptr;
-    profile_block* parent = nullptr;
+    profile_block* parent = nullptr; // todo: replace with a separate array of parents
     uint64_t duration{};
     uint64_t hit_count{};
 };
@@ -57,19 +57,30 @@ public:
         }
 
         m_current_block = new_block;
-        m_start_time = read_cpu_timer();
+
+    	if (!m_profiling)
+        {
+            m_profiling = true;
+            m_start_time = read_cpu_timer();
+            m_overall_start_time = m_start_time;
+        }
+        else
+        {
+            m_start_time = read_cpu_timer();
+        }
     }
 
     ~profiler()
     {
         const uint64_t end_time = read_cpu_timer();
+        m_overall_end_time = end_time;
         const uint64_t elapsed_time = end_time - m_start_time;
 
         m_current_block->duration += elapsed_time;
         m_current_block->hit_count += 1;
 
         if (m_current_block->parent)
-        	m_current_block->parent->duration -= elapsed_time;
+            m_current_block->parent->duration -= elapsed_time;
 
         m_current_block = m_current_block->parent;
     }
@@ -84,8 +95,17 @@ public:
         return std::vector<profile_block>{ m_blocks.begin(), m_blocks.begin() + m_block_count };
     }
 
+    static uint64_t get_overall_duration()
+    {
+        return m_overall_end_time - m_overall_start_time;
+    }
+
 private:
     uint64_t m_start_time{};
+
+    inline static uint64_t m_overall_start_time{};
+    inline static uint64_t m_overall_end_time{};
+    inline static bool m_profiling = false;
 
     inline constexpr static size_t max_blocks = 1024;
     inline static std::array<profile_block, max_blocks> m_blocks{};

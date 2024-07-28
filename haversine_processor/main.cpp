@@ -224,14 +224,26 @@ int main(int argc, char* argv[])
         //if (app_args.reference_path)
         //    std::cout << "  Read binary reference file in " << comparison_time << '\n';
 
-        std::cout << std::format("  (Legacy) Overall finished in {:.4f}ms\n", overall_time_cpu_ms);
+        std::cout << std::format("  (Legacy) Overall finished in {:.4f} ms\n\n", overall_time_cpu_ms);
 
-        std::vector<profile_block> profile_blocks = profiler::get_profile_blocks();
+        const std::vector<profile_block> profile_blocks = profiler::get_profile_blocks();
+        const uint64_t overall_duration = profiler::get_overall_duration();
+
+        double total_percent = 0.0;
+        double total_duration_ms = 0.0;
         for (const profile_block& block : profile_blocks)
         {
             const double duration_ms = 1000.0 * block.duration / cpu_freq;
-            std::cout << std::format("  {} finished in {:.4f}ms\n", block.name, duration_ms);
+            const double percentage = 100.0 * block.duration / overall_duration;
+
+            total_duration_ms += duration_ms;
+            total_percent += percentage;
+
+            std::cout << std::format("  {} finished in {:.4f} ms ({:.2f}%)\n", block.name, duration_ms, percentage);
         }
+
+        const double overall_duration_ms = 1000.0 * overall_duration / cpu_freq;
+        std::cout << std::format("\n  Total: {:.4f} {:.4f} ms ({:.2f}%)\n", overall_duration_ms, total_duration_ms, total_percent);
     }
     catch (std::exception& ex)
     {
