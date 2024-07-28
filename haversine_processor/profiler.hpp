@@ -20,7 +20,7 @@ template<typename T, size_t N>
 class profile_stack
 {
 public:
-    void push(T* block)
+    void push(T block)
     {
         if (m_size >= N)
             throw std::exception{ "Profile stack overflow" };
@@ -29,7 +29,7 @@ public:
         ++m_size;
     }
 
-    T* pop()
+    T pop()
     {
         if (m_size == 0)
             throw std::exception{ "Profile stack underflow" };
@@ -39,7 +39,7 @@ public:
         return m_profiles[m_size];
     }
 
-    T* top()
+    T top()
     {
         if (m_size == 0)
             throw std::exception{ "Profile stack underflow" };
@@ -47,12 +47,9 @@ public:
         return m_profiles[m_size - 1];
     }
 
-    T* operator[](size_t index)
+    void clear()
     {
-        if (index >= m_size || index < 0)
-            throw std::exception{ "Index out of bounds" };
-
-        return m_profiles[index];
+        m_size = 0;
     }
 
     size_t size() const
@@ -66,23 +63,8 @@ public:
         return m_size == 0;
     }
 
-    void clear()
-    {
-        m_size = 0;
-    }
-
-    T* begin()
-    {
-        return m_profiles[0];
-    }
-
-    T* end()
-    {
-        return m_profiles[m_size];
-    }
-
 private:
-    std::array<T*, N> m_profiles;
+    std::array<T, N> m_profiles;
     size_t m_size = 0;
 };
 
@@ -123,10 +105,7 @@ public:
             ++m_block_count;
         }
 
-        if (m_current_block)
-            m_profile_stack.push(m_current_block);
-
-        m_current_block = new_block;
+        m_profile_stack.push(new_block);
 
         if (!m_profiling)
         {
@@ -146,18 +125,14 @@ public:
         m_overall_end_time = end_time;
         const uint64_t elapsed_time = end_time - m_start_time;
 
-        m_current_block->duration += elapsed_time;
-        m_current_block->hit_count += 1;
+        auto* current_block = m_profile_stack.pop();
+        current_block->duration += elapsed_time;
+        current_block->hit_count += 1;
 
         if (!m_profile_stack.empty())
         {
-            profile_block* parent = m_profile_stack.pop();
+            profile_block* parent = m_profile_stack.top();
             parent->duration -= elapsed_time;
-            m_current_block = parent;
-        }
-        else
-        {
-            m_current_block = nullptr;
         }
     }
 
@@ -187,9 +162,7 @@ private:
     inline static std::array<profile_block, max_blocks> m_blocks{};
     inline static size_t m_block_count = 0;
 
-    inline static profile_stack<profile_block, max_blocks> m_profile_stack{};
-
-    inline static profile_block* m_current_block = nullptr;
+    inline static profile_stack<profile_block*, max_blocks> m_profile_stack{};
 };
 
 #endif
