@@ -40,7 +40,7 @@ public:
 
     reference back()
     {
-        return const_cast<T&>(static_cast<const profiler_array*>(this)->back());
+        return const_cast<reference>(static_cast<const profiler_array*>(this)->back());
     }
 
     const_reference back() const
@@ -53,7 +53,7 @@ public:
 
     reference front()
     {
-        return const_cast<T&>(static_cast<const profiler_array*>(this)->front());
+        return const_cast<reference>(static_cast<const profiler_array*>(this)->front());
     }
 
     const_reference front() const
@@ -97,7 +97,7 @@ public:
 
     reference at(size_type index)
     {
-        return const_cast<T&>(static_cast<const profiler_array*>(this)->at(index));
+        return const_cast<reference>(static_cast<const profiler_array*>(this)->at(index));
     }
 
     const_reference at(size_type index) const

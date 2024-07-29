@@ -222,20 +222,20 @@ int main(int argc, char* argv[])
 
         std::cout << std::format("  (Legacy) Overall finished in {:.4f} ms\n\n", overall_time_cpu_ms);
 
-        const auto& profile_blocks = profile_block::get_profile_blocks();
+        const auto& anchors = profile_block::get_anchors();
         const uint64_t overall_duration = profile_block::get_overall_duration();
 
         double total_percent = 0.0;
         double total_duration_ms = 0.0;
-        for (const profile_anchor& block : profile_blocks)
+        for (const profile_anchor& anchor : anchors)
         {
-            const double duration_ms = 1000.0 * block.duration_exclusive / cpu_freq;
-            const double percentage = 100.0 * block.duration_exclusive / overall_duration;
+            const double duration_ms = 1000.0 * anchor.duration_exclusive / cpu_freq;
+            const double percentage = 100.0 * anchor.duration_exclusive / overall_duration;
 
             total_duration_ms += duration_ms;
             total_percent += percentage;
 
-            std::cout << std::format("  {} finished in {:.4f} ms ({:.2f}%)\n", block.name, duration_ms, percentage);
+            std::cout << std::format("  {} finished in {:.4f} ms ({:.2f}%)\n", anchor.name, duration_ms, percentage);
         }
 
         const double overall_duration_ms = 1000.0 * overall_duration / cpu_freq;

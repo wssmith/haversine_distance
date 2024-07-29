@@ -37,35 +37,35 @@ private:
     inline constexpr static size_t max_anchors = 1024;
     inline constexpr static size_t max_depth = 1024;
 
-    inline static profiler_array<profile_anchor, max_anchors> m_blocks{};
+    inline static profiler_array<profile_anchor, max_anchors> m_anchors{};
     inline static profiler_stack<profile_anchor*, max_depth> m_anchor_stack{};
 
 public:
     explicit profile_block(const char* operation_name)
     {
-        if (m_blocks.size() >= decltype(m_blocks)::max_size())
-            throw std::exception{ "Too many profiler blocks" };
+        if (m_anchors.size() >= decltype(m_anchors)::max_size())
+            throw std::exception{ "Too many profiler anchors" };
 
         if (m_anchor_stack.size() >= decltype(m_anchor_stack)::max_size())
             throw std::exception{ "Too many nested profiler blocks" };
 
-        profile_anchor* new_block = nullptr;
-        for (profile_anchor& m_block : m_blocks)
+        profile_anchor* anchor = nullptr;
+        for (profile_anchor& a : m_anchors)
         {
-            if (std::strcmp(m_block.name, operation_name) == 0)
+            if (std::strcmp(a.name, operation_name) == 0)
             {
-                new_block = &m_block;
+                anchor = &a;
                 break;
             }
         }
 
-        if (new_block == nullptr)
+        if (anchor == nullptr)
         {
-            m_blocks.push_back({ .name = operation_name });
-            new_block = &m_blocks.back();
+            m_anchors.push_back(profile_anchor{ .name = operation_name });
+            anchor = &m_anchors.back();
         }
 
-        m_anchor_stack.push(new_block);
+        m_anchor_stack.push(anchor);
 
         if (!m_profiling)
         {
@@ -85,11 +85,11 @@ public:
         m_overall_end_time = end_time;
         const uint64_t elapsed_time = end_time - m_start_time;
 
-        profile_anchor* current_block = m_anchor_stack.top();
+        profile_anchor* current_anchor = m_anchor_stack.top();
         m_anchor_stack.pop();
 
-        current_block->duration_exclusive += elapsed_time;
-        current_block->hit_count += 1;
+        current_anchor->duration_exclusive += elapsed_time;
+        current_anchor->hit_count += 1;
 
         if (!m_anchor_stack.empty())
         {
@@ -103,9 +103,9 @@ public:
     profile_block(profile_block&&) noexcept = delete;
     profile_block& operator=(profile_block&&) noexcept = delete;
 
-    static std::span<profile_anchor> get_profile_blocks()
+    static std::span<profile_anchor> get_anchors()
     {
-        return { m_blocks.begin(), m_blocks.end() };
+        return { m_anchors.begin(), m_anchors.end() };
     }
 
     static uint64_t get_overall_duration()
