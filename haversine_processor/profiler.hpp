@@ -20,7 +20,7 @@
 struct profile_block
 {
     const char* name = nullptr;
-    uint64_t duration{};
+    uint64_t duration_exclusive{};
     uint64_t hit_count{};
 };
 
@@ -84,13 +84,13 @@ public:
         profile_block* current_block = m_call_stack.top();
         m_call_stack.pop();
 
-        current_block->duration += elapsed_time;
+        current_block->duration_exclusive += elapsed_time;
         current_block->hit_count += 1;
 
         if (!m_call_stack.empty())
         {
             profile_block* parent = m_call_stack.top();
-            parent->duration -= elapsed_time;
+            parent->duration_exclusive -= elapsed_time;
         }
     }
 
