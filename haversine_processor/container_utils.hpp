@@ -2,10 +2,10 @@
 #define WS_CONTAINERUTILS_HPP
 
 #define ITERATOR_SUPPORT(container) \
-using iterator = decltype(container)::iterator; \
-using const_iterator = decltype(container)::const_iterator; \
-using reverse_iterator = decltype(container)::reverse_iterator; \
-using const_reverse_iterator = decltype(container)::const_reverse_iterator; \
+using iterator = typename decltype(container)::iterator; \
+using const_iterator = typename decltype(container)::const_iterator; \
+using reverse_iterator = typename decltype(container)::reverse_iterator; \
+using const_reverse_iterator = typename decltype(container)::const_reverse_iterator; \
 \
 iterator begin() { return (container).begin(); } \
 const_iterator begin() const { return (container).begin(); } \
@@ -21,12 +21,12 @@ const_reverse_iterator crbegin() const { return (container).crbegin(); } \
 const_reverse_iterator crend() const { return (container).crend(); }
 
 #define CONTAINER_TYPE_ALIASES(container) \
-using value_type = decltype(container)::value_type; \
-using size_type = decltype(container)::size_type; \
-using difference_type = decltype(container)::difference_type; \
-using pointer = decltype(container)::pointer; \
-using const_pointer = decltype(container)::const_pointer; \
-using reference = decltype(container)::reference; \
-using const_reference = decltype(container)::const_reference;
+using value_type = typename decltype(container)::value_type; \
+using size_type = typename decltype(container)::size_type; \
+using difference_type = typename decltype(container)::difference_type; \
+using pointer = typename decltype(container)::pointer; \
+using const_pointer = typename decltype(container)::const_pointer; \
+using reference = typename decltype(container)::reference; \
+using const_reference = typename decltype(container)::const_reference;
 
 #endif

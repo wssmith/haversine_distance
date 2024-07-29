@@ -71,9 +71,6 @@
     <ClInclude Include="json\json.hpp">
       <Filter>Header Files\json</Filter>
     </ClInclude>
-    <ClInclude Include="json\container_utils.hpp">
-      <Filter>Header Files\json</Filter>
-    </ClInclude>
     <ClInclude Include="json\scoped_indent.hpp">
       <Filter>Header Files\json</Filter>
     </ClInclude>
@@ -84,6 +81,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="profiler.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="container_utils.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="profiler_containers.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

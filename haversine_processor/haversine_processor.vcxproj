@@ -142,9 +142,9 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="container_utils.hpp" />
     <ClInclude Include="platform_metrics.hpp" />
     <ClInclude Include="haversine_formula.hpp" />
-    <ClInclude Include="json\container_utils.hpp" />
     <ClInclude Include="json\json.hpp" />
     <ClInclude Include="json\literals.hpp" />
     <ClInclude Include="json\match.hpp" />
@@ -155,6 +155,7 @@
     <ClInclude Include="json\token.hpp" />
     <ClInclude Include="json\utilities.hpp" />
     <ClInclude Include="profiler.hpp" />
+    <ClInclude Include="profiler_containers.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\haversine_answers.f64" />
