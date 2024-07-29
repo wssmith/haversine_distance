@@ -148,9 +148,7 @@ private:
 
 public:
     CONTAINER_TYPE_ALIASES(m_profiles);
-
-    using iterator = typename decltype(m_profiles)::iterator;
-    using const_iterator = typename decltype(m_profiles)::const_iterator;
+    FORWARD_ITERATOR_SUPPORT(m_profiles);
 
     void push(const_reference block)
     {
@@ -184,7 +182,7 @@ public:
 
     static constexpr size_type max_size()
     {
-        return m_profiles.max_size();
+        return decltype(m_profiles)::max_size();
     }
 
     [[nodiscard]]
