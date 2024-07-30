@@ -229,13 +229,24 @@ int main(int argc, char* argv[])
         double total_duration_ms = 0.0;
         for (const profile_anchor& anchor : anchors)
         {
-            const double duration_ms = 1000.0 * anchor.duration_exclusive / cpu_freq;
-            const double percentage = 100.0 * anchor.duration_exclusive / overall_duration;
+            const double exclusive_duration_ms = 1000.0 * anchor.exclusive_duration / cpu_freq;
+            const double exclusive_percentage = 100.0 * anchor.exclusive_duration / overall_duration;
 
-            total_duration_ms += duration_ms;
-            total_percent += percentage;
+            total_duration_ms += exclusive_duration_ms;
+            total_percent += exclusive_percentage;
 
-            std::cout << std::format("  {} finished in {:.4f} ms ({:.2f}%)\n", anchor.name, duration_ms, percentage);
+            if (anchor.inclusive_duration != anchor.exclusive_duration)
+            {
+                const double inclusive_duration_ms = 1000.0 * anchor.inclusive_duration / cpu_freq;
+                const double inclusive_percentage = 100.0 * anchor.inclusive_duration / overall_duration;
+
+                std::cout << std::format("  {} finished in {:.4f} ms ({:.2f}%); {:.4f} ms ({:.2f}%) w/ children\n",
+                    anchor.name, exclusive_duration_ms, exclusive_percentage, inclusive_duration_ms, inclusive_percentage);
+            }
+            else
+            {
+                std::cout << std::format("  {} finished in {:.4f} ms ({:.2f}%)\n", anchor.name, exclusive_duration_ms, exclusive_percentage);
+            }
         }
 
         const double overall_duration_ms = 1000.0 * overall_duration / cpu_freq;

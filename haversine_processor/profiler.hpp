@@ -20,7 +20,8 @@
 struct profile_anchor
 {
     const char* name = nullptr;
-    uint64_t duration_exclusive{};
+    uint64_t exclusive_duration{};
+    uint64_t inclusive_duration{};
     uint64_t hit_count{};
 };
 
@@ -29,6 +30,7 @@ class profile_block final
 {
 private:
     uint64_t m_start_time{};
+    uint64_t m_prev_inclusive_duration{};
 
     inline static uint64_t m_overall_start_time{};
     inline static uint64_t m_overall_end_time{};
@@ -55,6 +57,7 @@ public:
             if (std::strcmp(a.name, operation_name) == 0)
             {
                 anchor = &a;
+                m_prev_inclusive_duration = anchor->inclusive_duration;
                 break;
             }
         }
@@ -88,13 +91,14 @@ public:
         profile_anchor* current_anchor = m_anchor_stack.top();
         m_anchor_stack.pop();
 
-        current_anchor->duration_exclusive += elapsed_time;
+        current_anchor->exclusive_duration += elapsed_time;
+        current_anchor->inclusive_duration = m_prev_inclusive_duration + elapsed_time;
         current_anchor->hit_count += 1;
 
         if (!m_anchor_stack.empty())
         {
             profile_anchor* parent = m_anchor_stack.top();
-            parent->duration_exclusive -= elapsed_time;
+            parent->exclusive_duration -= elapsed_time;
         }
     }
 
