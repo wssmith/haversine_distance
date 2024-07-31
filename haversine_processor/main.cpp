@@ -222,8 +222,8 @@ int main(int argc, char* argv[])
 
         std::cout << std::format("  (Legacy) Overall finished in {:.4f} ms\n\n", overall_time_cpu_ms);
 
-        const auto& anchors = profile_block::get_anchors();
-        const uint64_t overall_duration = profile_block::get_overall_duration();
+        const auto& anchors = profiler::get_anchors();
+        const uint64_t overall_duration = profiler::get_overall_duration();
 
         double total_percent = 0.0;
         double total_duration_ms = 0.0;
