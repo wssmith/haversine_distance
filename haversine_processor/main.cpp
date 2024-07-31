@@ -51,6 +51,39 @@ namespace
 
         return distance;
     }
+
+    void print_profiler_results()
+    {
+        const auto& anchors = profiler::get_anchors();
+        const uint64_t overall_duration = profiler::get_overall_duration();
+        const uint64_t cpu_freq = estimate_cpu_timer_freq();
+
+        std::cout << "Performance:\n";
+
+        double total_percent = 0.0;
+        for (const profile_anchor& anchor : anchors)
+        {
+            const double exclusive_duration_ms = 1000.0 * anchor.exclusive_duration / cpu_freq;
+            const double exclusive_percent = 100.0 * anchor.exclusive_duration / overall_duration;
+            total_percent += exclusive_percent;
+
+            if (anchor.inclusive_duration == anchor.exclusive_duration)
+            {
+                std::cout << std::format("  {} finished in {:.4f} ms ({:.2f}%)\n", anchor.name, exclusive_duration_ms, exclusive_percent);
+}
+            else
+            {
+                const double inclusive_duration_ms = 1000.0 * anchor.inclusive_duration / cpu_freq;
+                const double inclusive_percent = 100.0 * anchor.inclusive_duration / overall_duration;
+
+                std::cout << std::format("  {} finished in {:.4f} ms ({:.2f}%); {:.4f} ms w/ children ({:.2f}%)\n",
+                    anchor.name, exclusive_duration_ms, exclusive_percent, inclusive_duration_ms, inclusive_percent);
+            }
+        }
+
+        const double overall_duration_ms = 1000.0 * overall_duration / cpu_freq;
+        std::cout << std::format("\n  Total: {:.4f} ms ({:.2f}%)\n", overall_duration_ms, total_percent);
+    }
 }
 
 int main(int argc, char* argv[])
@@ -188,6 +221,7 @@ int main(int argc, char* argv[])
             // read reference binary file
             if (app_args.reference_path)
             {
+                PROFILE_BLOCK("compare_to_reference");
                 reference_distance = read_reference_distance(app_args.reference_path, pair_count);
                 distance_difference = std::abs(average_distance - reference_distance);
             }
@@ -207,50 +241,7 @@ int main(int argc, char* argv[])
             std::cout << std::format("  Difference: {:.16f}\n\n", distance_difference);
         }
 
-        const uint64_t overall_cpu = end_overall_cpu - start_overall_cpu;
-        const double overall_time_cpu_ms = 1000.0 * overall_cpu / cpu_freq;
-
-        std::cout << "Performance:\n";
-        //std::cout << "  Scanning completed in " << scan_time << '\n';
-        //std::cout << "  Parsing completed in " << parse_time << '\n';
-        //std::cout << "  Overall deserialized JSON in " << deserialize_time << '\n';
-        //std::cout << "  Pretty-printed JSON in " << print_time << '\n';
-        //std::cout << "  Calculated average distance in " << calculate_time << '\n';
-
-        //if (app_args.reference_path)
-        //    std::cout << "  Read binary reference file in " << comparison_time << '\n';
-
-        std::cout << std::format("  (Legacy) Overall finished in {:.4f} ms\n\n", overall_time_cpu_ms);
-
-        const auto& anchors = profiler::get_anchors();
-        const uint64_t overall_duration = profiler::get_overall_duration();
-
-        double total_percent = 0.0;
-        double total_duration_ms = 0.0;
-        for (const profile_anchor& anchor : anchors)
-        {
-            const double exclusive_duration_ms = 1000.0 * anchor.exclusive_duration / cpu_freq;
-            const double exclusive_percentage = 100.0 * anchor.exclusive_duration / overall_duration;
-
-            total_duration_ms += exclusive_duration_ms;
-            total_percent += exclusive_percentage;
-
-            if (anchor.inclusive_duration != anchor.exclusive_duration)
-            {
-                const double inclusive_duration_ms = 1000.0 * anchor.inclusive_duration / cpu_freq;
-                const double inclusive_percentage = 100.0 * anchor.inclusive_duration / overall_duration;
-
-                std::cout << std::format("  {} finished in {:.4f} ms ({:.2f}%); {:.4f} ms ({:.2f}%) w/ children\n",
-                    anchor.name, exclusive_duration_ms, exclusive_percentage, inclusive_duration_ms, inclusive_percentage);
-            }
-            else
-            {
-                std::cout << std::format("  {} finished in {:.4f} ms ({:.2f}%)\n", anchor.name, exclusive_duration_ms, exclusive_percentage);
-            }
-        }
-
-        const double overall_duration_ms = 1000.0 * overall_duration / cpu_freq;
-        std::cout << std::format("\n  Total: {:.4f} {:.4f} ms ({:.2f}%)\n", overall_duration_ms, total_duration_ms, total_percent);
+        print_profiler_results();
     }
     catch (std::exception& ex)
     {
