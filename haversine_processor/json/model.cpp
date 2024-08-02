@@ -22,7 +22,7 @@ namespace json
         {
             os << "\"";
 
-            for (char ch : s)
+            for (const char ch : s)
             {
                 switch (ch)
                 {
@@ -47,7 +47,7 @@ namespace json
 
         if (!o.members.empty())
         {
-            scoped_indent indent{ os }; // increases stream's line indentation inside the current scope
+            scoped_indent indent{ os };
 
             const json_member& m_0 = o.members[0];
             os << '\n' << m_0;
