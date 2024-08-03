@@ -29,6 +29,12 @@ namespace
         globe_point point2{};
     };
 
+    void print_json_document(const json::json_document& document)
+    {
+        PROFILE_FUNCTION;
+        std::cout << std::setprecision(13) << document << "\n\n";
+    }
+
     struct haversine_result
     {
         double mean_distance{};
@@ -231,17 +237,13 @@ int main(int argc, char* argv[])
         double reference_mean_distance = 0.0;
         double distance_difference = 0.0;
         haversine_result result;
-
         {
             PROFILE_BLOCK("overall");
 
             using namespace json;
-            const json_document document = deserialize_json(app_args.input_path);
+            json_document document = deserialize_json(app_args.input_path);
 
-            {
-                PROFILE_BLOCK("print");
-                //std::cout << std::setprecision(13) << document << "\n\n";
-            }
+            print_json_document(document);
 
             result = calculate_haversine(document);
 
