@@ -10,11 +10,24 @@
 #include "platform_metrics.hpp"
 #include "profiler_containers.hpp"
 
+#ifndef PROFILER
+#define PROFILER 0
+#endif
+
+#if PROFILER
+
 #define CONCAT_CORE(a, b) a##b
 #define CONCAT(a, b) CONCAT_CORE(a, b)
 
 #define PROFILE_BLOCK(name) profile_block CONCAT(activity, __LINE__){ (name) }
 #define PROFILE_FUNCTION PROFILE_BLOCK(__func__)
+
+#else
+
+#define PROFILE_BLOCK(...)
+#define PROFILE_FUNCTION
+
+#endif
 
 // stores information about a single profiling unit
 struct profile_anchor
