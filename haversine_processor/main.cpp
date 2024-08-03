@@ -75,7 +75,7 @@ namespace
             for (const auto& [name, value] : *point_pair)
             {
                 if (name.size() != 2)
-                    continue;
+                    throw std::exception{ "Unexpected point pair member found." };
 
                 switch (name[0])
                 {
