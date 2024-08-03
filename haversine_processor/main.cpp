@@ -29,7 +29,13 @@ namespace
         globe_point point2{};
     };
 
-    double calculate_haversine(const json::json_document& document, int& pair_count)
+    struct haversine_result
+    {
+        double mean_distance{};
+        int pair_count{};
+    };
+
+    haversine_result calculate_haversine(const json::json_document& document)
     {
         PROFILE_FUNCTION;
 
@@ -50,6 +56,7 @@ namespace
 
         const double sum_coeff = 1.0 / point_pair_count;
         double mean_distance = 0.0;
+        int pair_count = 0;
 
         for (const json_element& pair_element : *point_pairs)
         {
@@ -102,7 +109,7 @@ namespace
             ++pair_count;
         }
 
-        return mean_distance;
+        return { mean_distance, pair_count };
     }
 
     double read_reference_distance(const std::string& path, size_t expected_points)
@@ -130,11 +137,11 @@ namespace
         return distance;
     }
 
-    void print_haversine_results(uintmax_t input_file_size, int pair_count, double mean_distance)
+    void print_haversine_results(uintmax_t input_file_size, const haversine_result& result)
     {
         std::cout << std::format(std::locale("en_US"), "Input size: {:Ld} bytes\n", input_file_size);
-        std::cout << std::format(std::locale("en_US"), "Pair count: {:Ld}\n", pair_count);
-        std::cout << std::format("Haversine mean: {:.16f}\n\n", mean_distance);
+        std::cout << std::format(std::locale("en_US"), "Pair count: {:Ld}\n", result.pair_count);
+        std::cout << std::format("Haversine mean: {:.16f}\n\n", result.mean_distance);
     }
 
     void print_validation_results(double reference_mean_distance, double distance_difference)
@@ -223,8 +230,7 @@ int main(int argc, char* argv[])
 
         double reference_mean_distance = 0.0;
         double distance_difference = 0.0;
-        double mean_distance = 0.0;
-        int pair_count = 0;
+        haversine_result result;
 
         {
             PROFILE_BLOCK("overall");
@@ -234,19 +240,19 @@ int main(int argc, char* argv[])
 
             {
                 PROFILE_BLOCK("print");
-                std::cout << std::setprecision(13) << document << "\n\n";
+                //std::cout << std::setprecision(13) << document << "\n\n";
             }
 
-            mean_distance = calculate_haversine(document, pair_count);
+            result = calculate_haversine(document);
 
             if (app_args.reference_path)
             {
-                reference_mean_distance = read_reference_distance(app_args.reference_path, pair_count);
-                distance_difference = std::abs(mean_distance - reference_mean_distance);
+                reference_mean_distance = read_reference_distance(app_args.reference_path, result.pair_count);
+                distance_difference = std::abs(result.mean_distance - reference_mean_distance);
             }
         }
 
-        print_haversine_results(input_file_size, pair_count, mean_distance);
+        print_haversine_results(input_file_size, result);
 
         if (app_args.reference_path)
             print_validation_results(reference_mean_distance, distance_difference);

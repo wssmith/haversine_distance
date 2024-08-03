@@ -188,7 +188,7 @@ namespace json::scanner
                 if (consume_if(input_file, builder, [](int c) { return c >= '1' && c <= '9'; }))
                 {
                     // additional integral digits
-                    consume_while_digits(input_file, builder); // NOT required
+                    consume_while_digits(input_file, builder);
                 }
                 else
                 {

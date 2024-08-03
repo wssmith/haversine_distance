@@ -102,7 +102,7 @@ public:
 
         m_anchor->exclusive_duration += elapsed_time;
         m_anchor->inclusive_duration = m_prev_inclusive_duration + elapsed_time;
-        m_anchor->hit_count += 1;
+        ++m_anchor->hit_count;
 
         p::anchor_stack.pop();
 

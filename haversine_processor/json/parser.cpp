@@ -108,7 +108,7 @@ namespace json::parser
                             errors.push_back(format_error("Expected a comma after the previous member.", t->line));
 
                         back_up(iter, token_view);
-                        auto member = parse_member(iter, token_view, errors);
+                        json_member member = parse_member(iter, token_view, errors);
                         obj.members.push_back(member);
 
                         if (unique_keys.contains(member.key))
@@ -122,9 +122,13 @@ namespace json::parser
                             advance(iter, token_view);
                             t = next;
                         }
-                        else
+                        else if (next->type == token_type::right_object_brace)
                         {
                             expecting_member = false;
+                        }
+                        else
+                        {
+                            errors.push_back(format_error("Unexpected token found while parsing object.", t->line));
                         }
                         break;
                     }
@@ -182,9 +186,13 @@ namespace json::parser
                             advance(iter, token_view);
                             t = next;
                         }
-                        else
+                        else if (next->type == token_type::right_array_brace)
                         {
                             expecting_element = false;
+                        }
+                        else
+                        {
+                            errors.push_back(format_error("Unexpected token found while parsing array.", t->line));
                         }
                     }
 
