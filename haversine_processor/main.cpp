@@ -161,33 +161,34 @@ namespace
     {
         const auto& anchors = profiler::get_anchors();
         const uint64_t overall_duration = profiler::get_overall_duration();
+
         const uint64_t cpu_freq = estimate_cpu_timer_freq();
+        const double overall_duration_ms = 1000.0 * overall_duration / cpu_freq;
 
-        std::cout << "Performance:\n";
+        std::cout << std::format(std::locale("en_US"), "Total time: {:.4f} ms (CPU freq {:Ld})\n\n", overall_duration_ms, cpu_freq);
+        std::cout << "Performance profiles:\n";
 
-        double total_percent = 0.0;
         for (const profile_anchor& anchor : anchors)
         {
             const double exclusive_duration_ms = 1000.0 * anchor.exclusive_duration / cpu_freq;
             const double exclusive_percent = 100.0 * anchor.exclusive_duration / overall_duration;
-            total_percent += exclusive_percent;
+
+            constexpr int column_width = 35;
+            std::cout << std::left << std::setw(column_width) << std::fixed << std::setfill(' ');
+            std::cout << std::format(std::locale("en_US"), "  {}[{:Ld}]: ", anchor.name, anchor.hit_count);
 
             if (anchor.inclusive_duration == anchor.exclusive_duration)
             {
-                std::cout << std::format("  {} finished in {:.4f} ms ({:.2f}%)\n", anchor.name, exclusive_duration_ms, exclusive_percent);
+                std::cout << std::format("{:.4f} ms ({:.2f}%)\n", exclusive_duration_ms, exclusive_percent);
             }
             else
             {
                 const double inclusive_duration_ms = 1000.0 * anchor.inclusive_duration / cpu_freq;
                 const double inclusive_percent = 100.0 * anchor.inclusive_duration / overall_duration;
 
-                std::cout << std::format("  {} finished in {:.4f} ms ({:.2f}%); {:.4f} ms w/ children ({:.2f}%)\n",
-                    anchor.name, exclusive_duration_ms, exclusive_percent, inclusive_duration_ms, inclusive_percent);
+                std::cout << std::format("{:.4f} ms ({:.2f}%, {:.2f}% w/ children)\n", exclusive_duration_ms, exclusive_percent, inclusive_percent);
             }
         }
-
-        const double overall_duration_ms = 1000.0 * overall_duration / cpu_freq;
-        std::cout << std::format("\n  Total: {:.4f} ms ({:.2f}%)\n", overall_duration_ms, total_percent);
     }
 }
 
@@ -243,7 +244,7 @@ int main(int argc, char* argv[])
             using namespace json;
             json_document document = deserialize_json(app_args.input_path);
 
-            print_json_document(document);
+            //print_json_document(document);
 
             result = calculate_haversine(document);
 
