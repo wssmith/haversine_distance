@@ -143,11 +143,11 @@ namespace
         return distance;
     }
 
-    void print_haversine_results(uintmax_t input_file_size, const haversine_result& result)
+    void print_haversine_results(uintmax_t input_file_size, double mean_distance, int pair_count)
     {
         std::cout << std::format(std::locale("en_US"), "Input size: {:Ld} bytes\n", input_file_size);
-        std::cout << std::format(std::locale("en_US"), "Pair count: {:Ld}\n", result.pair_count);
-        std::cout << std::format("Haversine mean: {:.16f}\n\n", result.mean_distance);
+        std::cout << std::format(std::locale("en_US"), "Pair count: {:Ld}\n", pair_count);
+        std::cout << std::format("Haversine mean: {:.16f}\n\n", mean_distance);
     }
 
     void print_validation_results(double reference_mean_distance, double distance_difference)
@@ -155,40 +155,6 @@ namespace
         std::cout << "Validation:\n";
         std::cout << std::format("  Reference mean: {:.16f}\n", reference_mean_distance);
         std::cout << std::format("  Difference: {:.16f}\n\n", distance_difference);
-    }
-
-    void print_profiler_results()
-    {
-        const auto& anchors = profiler::get_anchors();
-        const uint64_t overall_duration = profiler::get_overall_duration();
-
-        const uint64_t cpu_freq = estimate_cpu_timer_freq();
-        const double overall_duration_ms = 1000.0 * overall_duration / cpu_freq;
-
-        std::cout << std::format(std::locale("en_US"), "Total time: {:.4f} ms (CPU freq {:Ld})\n\n", overall_duration_ms, cpu_freq);
-        std::cout << "Performance profiles:\n";
-
-        for (const profile_anchor& anchor : anchors)
-        {
-            const double exclusive_duration_ms = 1000.0 * anchor.exclusive_duration / cpu_freq;
-            const double exclusive_percent = 100.0 * anchor.exclusive_duration / overall_duration;
-
-            constexpr int column_width = 35;
-            std::cout << std::left << std::setw(column_width) << std::fixed << std::setfill(' ');
-            std::cout << std::format(std::locale("en_US"), "  {}[{:Ld}]: ", anchor.name, anchor.hit_count);
-
-            if (anchor.inclusive_duration == anchor.exclusive_duration)
-            {
-                std::cout << std::format("{:.4f} ms ({:.2f}%)\n", exclusive_duration_ms, exclusive_percent);
-            }
-            else
-            {
-                const double inclusive_duration_ms = 1000.0 * anchor.inclusive_duration / cpu_freq;
-                const double inclusive_percent = 100.0 * anchor.inclusive_duration / overall_duration;
-
-                std::cout << std::format("{:.4f} ms ({:.2f}%, {:.2f}% w/ children)\n", exclusive_duration_ms, exclusive_percent, inclusive_percent);
-            }
-        }
     }
 }
 
@@ -237,30 +203,29 @@ int main(int argc, char* argv[])
 
         double reference_mean_distance = 0.0;
         double distance_difference = 0.0;
-        haversine_result result;
+
+        profiler::start_profiling();
+
+        using namespace json;
+        json_document document = deserialize_json(app_args.input_path);
+        //print_json_document(document);
+
+        auto [mean_distance, pair_count] = calculate_haversine(document);
+
+        if (app_args.reference_path)
         {
-            PROFILE_BLOCK("overall");
-
-            using namespace json;
-            json_document document = deserialize_json(app_args.input_path);
-
-            //print_json_document(document);
-
-            result = calculate_haversine(document);
-
-            if (app_args.reference_path)
-            {
-                reference_mean_distance = read_reference_distance(app_args.reference_path, result.pair_count);
-                distance_difference = std::abs(result.mean_distance - reference_mean_distance);
-            }
+            reference_mean_distance = read_reference_distance(app_args.reference_path, pair_count);
+            distance_difference = std::abs(mean_distance - reference_mean_distance);
         }
 
-        print_haversine_results(input_file_size, result);
+        profiler::stop_profiling();
+
+        print_haversine_results(input_file_size, mean_distance, pair_count);
 
         if (app_args.reference_path)
             print_validation_results(reference_mean_distance, distance_difference);
 
-        print_profiler_results();
+        profiler::print_results();
     }
     catch (std::exception& ex)
     {

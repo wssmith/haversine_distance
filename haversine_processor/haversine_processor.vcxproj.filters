@@ -45,6 +45,9 @@
     <ClCompile Include="haversine_formula.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="profiler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="json\literals.hpp">

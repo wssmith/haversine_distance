@@ -350,6 +350,7 @@
     <ClCompile Include="json\token.cpp" />
     <ClCompile Include="json\utilities.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="profiler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="container_utils.hpp" />
