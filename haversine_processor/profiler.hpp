@@ -137,6 +137,4 @@ public:
     profile_block& operator=(profile_block&&) noexcept = delete;
 };
 
-void print_profiler_results();
-
 #endif
