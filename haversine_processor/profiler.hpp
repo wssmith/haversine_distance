@@ -14,13 +14,24 @@
 #endif
 
 #if PROFILER
+
+#if _MSC_VER
+#define FUNCTION_NAME __FUNCTION__
+#else
+#define FUNCTION_NAME __func__
+#endif
+
 #define CONCAT_CORE(a, b) a##b
 #define CONCAT(a, b) CONCAT_CORE(a, b)
-#define PROFILE_BLOCK(name) static constexpr char CONCAT(anchor, __LINE__)[] = "name"; profile_block CONCAT(activity, __LINE__){ (name), anchor_id<CONCAT(anchor, __LINE__)> };
+
+#define PROFILE_BLOCK(name) static constexpr char CONCAT(anchor, __LINE__)[] = FUNCTION_NAME; profile_block CONCAT(activity, __LINE__){ (name), anchor_id<CONCAT(anchor, __LINE__)> };
 #define PROFILE_FUNCTION PROFILE_BLOCK(__func__)
+
 #else
+
 #define PROFILE_BLOCK(...)
 #define PROFILE_FUNCTION
+
 #endif
 
 inline uint32_t anchor_id_counter = 1;

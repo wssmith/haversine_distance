@@ -1,13 +1,13 @@
 #include "profiler.hpp"
 
-#include <algorithm>
 #include <format>
 #include <iostream>
 #include <locale>
-#include <vector>
 
 #if PROFILER
+#include <algorithm>
 #include <iomanip>
+#include <vector>
 #define PRINT_ANCHORS(...) print_anchors(__VA_ARGS__)
 #else
 #define PRINT_ANCHORS(...)
