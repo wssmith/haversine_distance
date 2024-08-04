@@ -2,8 +2,8 @@
 #define WS_PROFILER_CONTAINERS_HPP
 
 #include <array>
+#include <cassert>
 #include <cstddef>
-#include <exception>
 
 #include "container_utils.hpp"
 
@@ -23,18 +23,14 @@ public:
 
     void push_back(const_reference block)
     {
-        if (m_size >= N)
-            throw std::exception{ "Profiler array overflow during profiler_array::push_back()" };
-
+        assert(m_size < N, "Profiler array overflow during profiler_array::push_back()");
         m_profiles[m_size] = block;
         ++m_size;
     }
 
     void pop_back()
     {
-        if (m_size == 0)
-            throw std::exception{ "Profiler array underflow during profiler_array::pop_back()" };
-
+        assert(m_size > 0, "Profiler array underflow during profiler_array::pop_back()");
         --m_size;
     }
 
@@ -45,9 +41,7 @@ public:
 
     const_reference back() const
     {
-        if (m_size == 0)
-            throw std::exception{ "Profiler array underflow during profiler_array::back()" };
-
+        assert(m_size > 0, "Profiler array underflow during profiler_array::back()");
         return m_profiles[m_size - 1];
     }
 
@@ -58,9 +52,7 @@ public:
 
     const_reference front() const
     {
-        if (m_size == 0)
-            throw std::exception{ "Profiler array underflow during profiler_array::front()" };
-
+        assert(m_size > 0, "Profiler array underflow during profiler_array::front()");
         return m_profiles[0];
     }
 
@@ -102,9 +94,7 @@ public:
 
     const_reference at(size_type index) const
     {
-        if (index >= m_size)
-            throw std::exception{ "Index out of range in profiler_array::at()" };
-
+        assert(index < m_size, "Index out of range in profiler_array::at()");
         return m_profiles.at(index);
     }
 

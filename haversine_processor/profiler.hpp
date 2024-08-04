@@ -78,7 +78,6 @@ class profile_block final
 {
 private:
     profile_anchor* m_anchor = nullptr;
-    uint64_t m_anchor_index = 0;
     uint64_t m_start_time{};
     uint64_t m_prev_inclusive_duration{};
 
