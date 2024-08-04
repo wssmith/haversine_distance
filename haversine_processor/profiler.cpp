@@ -5,12 +5,17 @@
 #include <locale>
 
 #if PROFILER
+
 #include <algorithm>
 #include <iomanip>
 #include <vector>
+
 #define PRINT_ANCHORS(...) print_anchors(__VA_ARGS__)
+
 #else
+
 #define PRINT_ANCHORS(...)
+
 #endif
 
 #if PROFILER
