@@ -334,11 +334,13 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release (No Profiler)|Win32'">
     <ClCompile>
       <AdditionalOptions>-D PROFILER=0 %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release (No Profiler)|x64'">
     <ClCompile>
       <AdditionalOptions>-D PROFILER=0 %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
