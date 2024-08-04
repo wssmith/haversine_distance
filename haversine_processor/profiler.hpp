@@ -98,7 +98,7 @@ private:
     using p = profiler;
 
 public:
-    explicit profile_block(const char* operation_name, uint32_t anchor_index)
+    profile_block(const char* operation_name, uint32_t anchor_index)
     {
         assert(anchor_index < p::max_anchors, "Too many profile anchors");
 
