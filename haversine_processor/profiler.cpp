@@ -40,7 +40,7 @@ namespace
     {
         const auto& anchors = profiler::get_anchors();
 
-        std::cout << "\nPerformance profiles:\n";
+        std::cout << "\nProfiles:\n";
 
         for (const profile_anchor& anchor : anchors)
         {
