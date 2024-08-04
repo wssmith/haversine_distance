@@ -27,17 +27,17 @@
 #define PROFILE_BLOCK(name) static constexpr char CONCAT(anchor, __LINE__)[] = FUNCTION_NAME; profile_block CONCAT(activity, __LINE__){ (name), anchor_id<CONCAT(anchor, __LINE__)> };
 #define PROFILE_FUNCTION PROFILE_BLOCK(__func__)
 
+inline uint32_t anchor_id_counter = 1;
+
+template<const char* AnchorName>
+inline const uint32_t anchor_id = anchor_id_counter++;
+
 #else
 
 #define PROFILE_BLOCK(...)
 #define PROFILE_FUNCTION
 
 #endif
-
-inline uint32_t anchor_id_counter = 1;
-
-template<const char* AnchorName>
-inline const uint32_t anchor_id = anchor_id_counter++;
 
 // stores information about a single profiling unit
 struct profile_anchor
