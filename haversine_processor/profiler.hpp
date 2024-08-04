@@ -72,12 +72,12 @@ public:
 
     static void start_profiling()
     {
-        overall_start_time = read_cpu_timer();
+        overall_start_time = READ_BLOCK_TIMER();
     }
 
     static void stop_profiling()
     {
-        overall_end_time = read_cpu_timer();
+        overall_end_time = READ_BLOCK_TIMER();
     }
 
     static void print_results();
@@ -110,12 +110,12 @@ public:
         m_prev_inclusive_duration = anchor.inclusive_duration;
 
         m_global_parent_index = m_anchor_index;
-        m_start_time = read_cpu_timer();
+        m_start_time = READ_BLOCK_TIMER();
     }
 
     ~profile_block()
     {
-        const uint64_t end_time = read_cpu_timer();
+        const uint64_t end_time = READ_BLOCK_TIMER();
         const uint64_t elapsed_time = end_time - m_start_time;
 
         m_global_parent_index = m_parent_index;
