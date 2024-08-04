@@ -24,10 +24,10 @@
 #define PROFILE_FUNCTION
 #endif
 
-inline uint64_t anchor_id_counter = 0;
+inline uint32_t anchor_id_counter = 0;
 
 template<const char* AnchorName>
-inline const uint64_t anchor_id = anchor_id_counter++;
+inline const uint32_t anchor_id = anchor_id_counter++;
 
 // stores information about a single profiling unit
 struct profile_anchor
@@ -77,9 +77,10 @@ public:
 class profile_block final
 {
 private:
-    profile_anchor* m_anchor = nullptr;
     uint64_t m_start_time{};
     uint64_t m_prev_inclusive_duration{};
+    uint32_t m_parent_index{};
+    uint32_t m_anchor_index{};
 
     inline constexpr static size_t max_depth = 1024;
     inline static profiler_stack<profile_anchor*, max_depth> anchor_stack{};
@@ -87,16 +88,18 @@ private:
     using p = profiler;
 
 public:
-    explicit profile_block(const char* operation_name, uint64_t anchor_index)
+    explicit profile_block(const char* operation_name, uint32_t anchor_index)
     {
         assert(anchor_index < p::max_anchors, "Too many profile anchors");
         assert(anchor_stack.size() < decltype(anchor_stack)::max_size(), "Too many nested profiler blocks");
 
-        m_anchor = &p::anchors[anchor_index];
-        m_anchor->name = operation_name;
-        m_prev_inclusive_duration = m_anchor->inclusive_duration;
+        m_anchor_index = anchor_index;
 
-        anchor_stack.push(m_anchor);
+        profile_anchor& anchor = p::anchors[m_anchor_index];
+        anchor.name = operation_name;
+        m_prev_inclusive_duration = anchor.inclusive_duration;
+
+        anchor_stack.push(&anchor);
 
         m_start_time = read_cpu_timer();
     }
@@ -106,9 +109,10 @@ public:
         const uint64_t end_time = read_cpu_timer();
         const uint64_t elapsed_time = end_time - m_start_time;
 
-        m_anchor->exclusive_duration += elapsed_time;
-        m_anchor->inclusive_duration = m_prev_inclusive_duration + elapsed_time;
-        ++m_anchor->hit_count;
+        profile_anchor& anchor = p::anchors[m_anchor_index];
+        anchor.exclusive_duration += elapsed_time;
+        anchor.inclusive_duration = m_prev_inclusive_duration + elapsed_time;
+        ++anchor.hit_count;
 
         anchor_stack.pop();
 
