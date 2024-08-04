@@ -38,9 +38,9 @@ namespace
 
     void print_anchors(uint64_t cpu_freq, uint64_t overall_duration)
     {
-        const auto& anchors = profiler::get_anchors();
-
         std::cout << "\nProfiles:\n";
+
+        const auto& anchors = profiler::get_anchors();
 
         for (const profile_anchor& anchor : anchors)
         {

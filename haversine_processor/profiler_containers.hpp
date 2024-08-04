@@ -123,12 +123,22 @@ public:
         return m_profiles.begin();
     }
 
+    const_iterator begin() const
+    {
+        return m_profiles.begin();
+    }
+
     const_iterator cbegin() const
     {
         return m_profiles.cbegin();
     }
 
     iterator end()
+    {
+        return m_profiles.begin() + m_size;
+    }
+
+    const_iterator end() const
     {
         return m_profiles.begin() + m_size;
     }

@@ -46,9 +46,9 @@ private:
     inline static profiler_array<profile_anchor, max_anchors> anchors{};
 
 public:
-    static std::span<profile_anchor> get_anchors()
+    static profiler_array<profile_anchor, max_anchors>& get_anchors()
     {
-        return { anchors.begin(), anchors.end() };
+        return anchors;
     }
 
     static uint64_t get_overall_duration()
