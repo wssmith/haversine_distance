@@ -1,10 +1,11 @@
 ﻿#ifndef WS_PROFILER_HPP
 #define WS_PROFILER_HPP
 
+#include <array>
+#include <cassert>
 #include <cstddef>
 #include <cstdint>
-#include <cstring>
-#include <exception>
+#include <iostream>
 
 #include "platform_metrics.hpp"
 #include "profiler_containers.hpp"
@@ -23,10 +24,10 @@
 #define PROFILE_FUNCTION
 #endif
 
-inline int anchor_id_counter = 0;
+inline uint64_t anchor_id_counter = 0;
 
 template<const char* AnchorName>
-inline const int anchor_id = anchor_id_counter++;
+inline const uint64_t anchor_id = anchor_id_counter++;
 
 // stores information about a single profiling unit
 struct profile_anchor
@@ -46,10 +47,10 @@ private:
     inline static uint64_t overall_end_time{};
 
     inline constexpr static size_t max_anchors = 1024;
-    inline static profiler_array<profile_anchor, max_anchors> anchors{};
+    inline static std::array<profile_anchor, 1024> anchors{};
 
 public:
-    static profiler_array<profile_anchor, max_anchors>& get_anchors()
+    static std::array<profile_anchor, max_anchors>& get_anchors()
     {
         return anchors;
     }
@@ -77,6 +78,7 @@ class profile_block final
 {
 private:
     profile_anchor* m_anchor = nullptr;
+    uint64_t m_anchor_index = 0;
     uint64_t m_start_time{};
     uint64_t m_prev_inclusive_duration{};
 
@@ -86,31 +88,14 @@ private:
     using p = profiler;
 
 public:
-    explicit profile_block(const char* operation_name, int anchor_id)
+    explicit profile_block(const char* operation_name, uint64_t anchor_index)
     {
-        if (p::anchors.size() >= decltype(p::anchors)::max_size())
-            throw std::exception{ "Too many profiler anchors" };
+        assert(anchor_index < p::max_anchors, "Too many profile anchors");
+        assert(anchor_stack.size() < decltype(anchor_stack)::max_size(), "Too many nested profiler blocks");
 
-        if (anchor_stack.size() >= decltype(anchor_stack)::max_size())
-            throw std::exception{ "Too many nested profiler blocks" };
-
-        // todo: it would be better to determine the anchor index at compile time
-        m_anchor = nullptr;
-        for (profile_anchor& a : p::anchors)
-        {
-            if (std::strcmp(a.name, operation_name) == 0)
-            {
-                m_anchor = &a;
-                m_prev_inclusive_duration = m_anchor->inclusive_duration;
-                break;
-            }
-        }
-
-        if (m_anchor == nullptr)
-        {
-            p::anchors.push_back({ .name = operation_name });
-            m_anchor = &p::anchors.back();
-        }
+        m_anchor = &p::anchors[anchor_index];
+        m_anchor->name = operation_name;
+        m_prev_inclusive_duration = m_anchor->inclusive_duration;
 
         anchor_stack.push(m_anchor);
 

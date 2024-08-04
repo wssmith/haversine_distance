@@ -1,8 +1,10 @@
 #include "profiler.hpp"
 
+#include <algorithm>
 #include <format>
 #include <iostream>
 #include <locale>
+#include <vector>
 
 #if PROFILER
 #include <iomanip>
@@ -38,13 +40,27 @@ namespace
 
     void print_anchors(uint64_t cpu_freq, uint64_t overall_duration)
     {
-        std::cout << "\nProfiles:\n";
-
         const auto& anchors = profiler::get_anchors();
+
+        std::vector<const profile_anchor*> sorted_anchors;
+        sorted_anchors.reserve(anchor_id_counter);
 
         for (const profile_anchor& anchor : anchors)
         {
-            print_anchor(anchor, cpu_freq, overall_duration);
+            if (anchor.name != nullptr)
+                sorted_anchors.push_back(&anchor);
+        }
+
+        std::ranges::sort(sorted_anchors, [](auto a1, auto a2)
+        {
+            return std::strcmp(a1->name, a2->name) < 0;
+        });
+
+        std::cout << "\nProfiles:\n";
+
+        for (const profile_anchor* anchor : sorted_anchors)
+        {
+            print_anchor(*anchor, cpu_freq, overall_duration);
         }
     }
 }
