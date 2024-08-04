@@ -58,10 +58,10 @@ namespace
 
         std::ranges::sort(sorted_anchors, [](auto a1, auto a2)
         {
-            return a1->exclusive_duration > a2->exclusive_duration;
-            //return a1->hit_count > a2->hit_count;
+            return std::strcmp(a1->name, a2->name) < 0;
+            //return a1->exclusive_duration > a2->exclusive_duration;
             //return a1->inclusive_duration > a2->inclusive_duration;
-            //return std::strcmp(a1->name, a2->name) < 0;
+            //return a1->hit_count > a2->hit_count;
         });
 
         std::cout << "\nProfiles:\n";
