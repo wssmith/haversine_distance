@@ -89,9 +89,6 @@
     <ClInclude Include="container_utils.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="profiler_containers.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\haversine_answers.f64">

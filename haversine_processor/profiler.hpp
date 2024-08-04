@@ -8,7 +8,6 @@
 #include <iostream>
 
 #include "platform_metrics.hpp"
-#include "profiler_containers.hpp"
 
 #ifndef PROFILER
 #define PROFILER 0
@@ -24,7 +23,7 @@
 #define PROFILE_FUNCTION
 #endif
 
-inline uint32_t anchor_id_counter = 0;
+inline uint32_t anchor_id_counter = 1;
 
 template<const char* AnchorName>
 inline const uint32_t anchor_id = anchor_id_counter++;
@@ -77,13 +76,13 @@ public:
 class profile_block final
 {
 private:
+    const char* m_operation_name = nullptr;
     uint64_t m_start_time{};
     uint64_t m_prev_inclusive_duration{};
     uint32_t m_parent_index{};
     uint32_t m_anchor_index{};
 
-    inline constexpr static size_t max_depth = 1024;
-    inline static profiler_stack<profile_anchor*, max_depth> anchor_stack{};
+    inline static uint32_t m_global_parent_index = 0;
 
     using p = profiler;
 
@@ -91,16 +90,15 @@ public:
     explicit profile_block(const char* operation_name, uint32_t anchor_index)
     {
         assert(anchor_index < p::max_anchors, "Too many profile anchors");
-        assert(anchor_stack.size() < decltype(anchor_stack)::max_size(), "Too many nested profiler blocks");
 
+        m_parent_index = m_global_parent_index;
         m_anchor_index = anchor_index;
+        m_operation_name = operation_name;
 
-        profile_anchor& anchor = p::anchors[m_anchor_index];
-        anchor.name = operation_name;
+        const profile_anchor& anchor = p::anchors[m_anchor_index];
         m_prev_inclusive_duration = anchor.inclusive_duration;
 
-        anchor_stack.push(&anchor);
-
+        m_global_parent_index = m_anchor_index;
         m_start_time = read_cpu_timer();
     }
 
@@ -109,18 +107,17 @@ public:
         const uint64_t end_time = read_cpu_timer();
         const uint64_t elapsed_time = end_time - m_start_time;
 
+        m_global_parent_index = m_parent_index;
+
+        profile_anchor& parent = p::anchors[m_parent_index];
         profile_anchor& anchor = p::anchors[m_anchor_index];
+
+        parent.exclusive_duration -= elapsed_time;
         anchor.exclusive_duration += elapsed_time;
         anchor.inclusive_duration = m_prev_inclusive_duration + elapsed_time;
         ++anchor.hit_count;
 
-        anchor_stack.pop();
-
-        if (!anchor_stack.empty())
-        {
-            profile_anchor* parent = anchor_stack.top();
-            parent->exclusive_duration -= elapsed_time;
-        }
+        anchor.name = m_operation_name;
     }
 
     profile_block(const profile_block&) = delete;

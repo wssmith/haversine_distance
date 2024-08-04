@@ -368,7 +368,6 @@
     <ClInclude Include="json\token.hpp" />
     <ClInclude Include="json\utilities.hpp" />
     <ClInclude Include="profiler.hpp" />
-    <ClInclude Include="profiler_containers.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\haversine_answers.f64" />
