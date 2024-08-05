@@ -23,8 +23,9 @@
 
 #define CONCAT_CORE(a, b) a##b
 #define CONCAT(a, b) CONCAT_CORE(a, b)
+#define VAR_NAME(x) CONCAT(x, __LINE__)
 
-#define PROFILE_DATA_BLOCK(name, data_processed) static constexpr char CONCAT(anchor, __LINE__)[] = FUNCTION_NAME; profile_block CONCAT(activity, __LINE__){ (name), anchor_id<CONCAT(anchor, __LINE__)>, (data_processed) };
+#define PROFILE_DATA_BLOCK(name, data_processed) static constexpr char VAR_NAME(anchor)[] = FUNCTION_NAME; profile_block VAR_NAME(activity){ (name), anchor_id<VAR_NAME(anchor)>, (data_processed) };
 #define PROFILE_DATA_FUNCTION(data_processed) PROFILE_DATA_BLOCK(__func__, (data_processed))
 
 #define PROFILE_BLOCK(name) PROFILE_DATA_BLOCK((name), 0)
