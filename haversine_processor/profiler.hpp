@@ -61,7 +61,7 @@ private:
     inline static uint64_t overall_end_time{};
 
     inline constexpr static size_t max_anchors = 1024;
-    inline static std::array<profile_anchor, 1024> anchors{};
+    inline static std::array<profile_anchor, max_anchors> anchors{};
 
 public:
     static std::array<profile_anchor, max_anchors>& get_anchors()
