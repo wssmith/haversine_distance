@@ -21,7 +21,7 @@ namespace
 
 double haversine_distance(double x0, double y0, double x1, double y1, double earth_radius)
 {
-    PROFILE_FUNCTION;
+    PROFILE_DATA_FUNCTION(4 * sizeof(double));
 
     const double d_lat = radians_from_degrees(y1 - y0);
     const double d_lon = radians_from_degrees(x1 - x0);

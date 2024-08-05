@@ -1,6 +1,5 @@
 ﻿#include "scanner.hpp"
 
-#include <fstream>
 #include <exception>
 #include <ostream>
 #include <sstream>
@@ -18,13 +17,13 @@ namespace json::scanner
 
     namespace
     {
-        void read_string(std::ifstream& input_file, int line, std::vector<token>& tokens, std::vector<std::string>& errors);
-        void read_number(std::ifstream& input_file, int line, std::vector<token>& tokens, std::vector<std::string>& errors);
-        void read_literal(std::ifstream& input_file, const std::string& expected, token_type expected_token, int line, std::vector<token>& tokens, std::vector<std::string>& errors);
+        void read_string(std::istream& input_file, int line, std::vector<token>& tokens, std::vector<std::string>& errors);
+        void read_number(std::istream& input_file, int line, std::vector<token>& tokens, std::vector<std::string>& errors);
+        void read_literal(std::istream& input_file, const std::string& expected, token_type expected_token, int line, std::vector<token>& tokens, std::vector<std::string>& errors);
 
         using consume_filter = bool(*)(int);
 
-        bool consume_if(std::ifstream& input_file, std::ostringstream& builder, consume_filter predicate)
+        bool consume_if(std::istream& input_file, std::ostringstream& builder, consume_filter predicate)
         {
             if (const auto next = input_file.peek(); !input_file.eof() && predicate(next))
             {
@@ -38,7 +37,7 @@ namespace json::scanner
             return false;
         }
 
-        bool consume_while(std::ifstream& input_file, std::ostringstream& builder, consume_filter predicate)
+        bool consume_while(std::istream& input_file, std::ostringstream& builder, consume_filter predicate)
         {
             bool consumed = false;
             char ch{};
@@ -52,12 +51,12 @@ namespace json::scanner
             return consumed;
         }
 
-        bool consume_while_digits(std::ifstream& input_file, std::ostringstream& builder)
+        bool consume_while_digits(std::istream& input_file, std::ostringstream& builder)
         {
             return consume_while(input_file, builder, [](int c) { return c >= '0' && c <= '9'; });
         }
 
-        void skip_while(std::ifstream& input_file, consume_filter predicate)
+        void skip_while(std::istream& input_file, consume_filter predicate)
         {
             char ch{};
             for (auto next = input_file.peek(); !input_file.eof() && predicate(next); next = input_file.peek())
@@ -66,7 +65,7 @@ namespace json::scanner
             }
         }
 
-        bool reached_end_of_file(std::ifstream& input_file)
+        bool reached_end_of_file(std::istream& input_file)
         {
             input_file.peek();
             return input_file.eof();
@@ -100,7 +99,7 @@ namespace json::scanner
             }
         }
 
-        void read_string(std::ifstream& input_file, int line, std::vector<token>& tokens, std::vector<std::string>& errors)
+        void read_string(std::istream& input_file, int line, std::vector<token>& tokens, std::vector<std::string>& errors)
         {
             std::ostringstream builder;
             char ch{};
@@ -172,7 +171,7 @@ namespace json::scanner
         }
 
 
-        void read_number(std::ifstream& input_file, int line, std::vector<token>& tokens, std::vector<std::string>& errors)
+        void read_number(std::istream& input_file, int line, std::vector<token>& tokens, std::vector<std::string>& errors)
         {
             std::ostringstream builder;
             bool is_valid = true;
@@ -242,7 +241,7 @@ namespace json::scanner
             }
         }
 
-        void read_literal(std::ifstream& input_file, const std::string& expected, token_type expected_token, int line, std::vector<token>& tokens, std::vector<std::string>& errors)
+        void read_literal(std::istream& input_file, const std::string& expected, token_type expected_token, int line, std::vector<token>& tokens, std::vector<std::string>& errors)
         {
             bool is_valid = true;
             char ch{};
@@ -269,7 +268,7 @@ namespace json::scanner
             errors.push_back(format_error("Unexpected character '"s + ch + "'.", line));
         }
 
-        void skip_comment(std::ifstream& input_file, int& line, std::vector<std::string>& errors)
+        void skip_comment(std::istream& input_file, int& line, std::vector<std::string>& errors)
         {
             const int comment_start_line = line;
             const int next = input_file.peek();
@@ -316,9 +315,9 @@ namespace json::scanner
         }
     }
 
-    std::vector<token> scan(std::ifstream& input_file)
+    std::vector<token> scan(std::istream& input_file, uintmax_t file_size)
     {
-        PROFILE_FUNCTION;
+        PROFILE_DATA_FUNCTION(file_size)
 
         std::vector<token> tokens;
         std::vector<std::string> errors;

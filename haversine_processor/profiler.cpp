@@ -23,24 +23,34 @@ namespace
 {
     void print_anchor(const profile_anchor& anchor, uint64_t cpu_freq, uint64_t overall_duration)
     {
+        constexpr int column_1_width = 35;
+        constexpr int column_2_width = 40;
+
         const double exclusive_duration_ms = 1000.0 * anchor.exclusive_duration / cpu_freq;
         const double exclusive_percent = 100.0 * anchor.exclusive_duration / overall_duration;
 
-        constexpr int column_width = 35;
-        std::cout << std::left << std::setw(column_width) << std::fixed << std::setfill(' ');
+        std::cout << std::left << std::setw(column_1_width) << std::fixed << std::setfill(' ');
         std::cout << std::format(std::locale("en_US"), "  {}[{:Ld}]: ", anchor.name, anchor.hit_count);
+        std::cout << std::left << std::setw(column_2_width) << std::fixed << std::setfill(' ');
 
         if (anchor.inclusive_duration == anchor.exclusive_duration)
         {
-            std::cout << std::format("{:.4f} ms ({:.2f}%)\n", exclusive_duration_ms, exclusive_percent);
+            std::cout << std::format("{:.4f} ms ({:.2f}%)", exclusive_duration_ms, exclusive_percent);
         }
         else
         {
             const double inclusive_duration_ms = 1000.0 * anchor.inclusive_duration / cpu_freq;
             const double inclusive_percent = 100.0 * anchor.inclusive_duration / overall_duration;
 
-            std::cout << std::format("{:.4f} ms ({:.2f}%, {:.2f}% w/ children)\n", exclusive_duration_ms, exclusive_percent, inclusive_percent);
+            std::cout << std::format("{:.4f} ms ({:.2f}%, {:.2f}% w/ children)", exclusive_duration_ms, exclusive_percent, inclusive_percent);
         }
+
+        if (anchor.data_processed)
+        {
+            std::cout << std::format(std::locale("en_US"), "[Data processed: {:Ld} bytes]", anchor.data_processed);
+        }
+
+        std::cout << '\n';
     }
 
     void print_anchors(uint64_t cpu_freq, uint64_t overall_duration)

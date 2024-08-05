@@ -24,8 +24,11 @@
 #define CONCAT_CORE(a, b) a##b
 #define CONCAT(a, b) CONCAT_CORE(a, b)
 
-#define PROFILE_BLOCK(name) static constexpr char CONCAT(anchor, __LINE__)[] = FUNCTION_NAME; profile_block CONCAT(activity, __LINE__){ (name), anchor_id<CONCAT(anchor, __LINE__)> };
-#define PROFILE_FUNCTION PROFILE_BLOCK(__func__)
+#define PROFILE_DATA_BLOCK(name, data_processed) static constexpr char CONCAT(anchor, __LINE__)[] = FUNCTION_NAME; profile_block CONCAT(activity, __LINE__){ (name), anchor_id<CONCAT(anchor, __LINE__)>, (data_processed) };
+#define PROFILE_DATA_FUNCTION(data_processed) PROFILE_DATA_BLOCK(__func__, (data_processed))
+
+#define PROFILE_BLOCK(name) PROFILE_DATA_BLOCK((name), 0)
+#define PROFILE_FUNCTION PROFILE_DATA_FUNCTION(0)
 
 inline uint32_t anchor_id_counter = 1;
 
@@ -46,6 +49,7 @@ struct profile_anchor
     uint64_t exclusive_duration{};
     uint64_t inclusive_duration{};
     uint64_t hit_count{};
+    uint64_t data_processed{};
 };
 
 class profiler
@@ -90,6 +94,7 @@ private:
     const char* m_operation_name = nullptr;
     uint64_t m_start_time{};
     uint64_t m_prev_inclusive_duration{};
+    uint64_t m_data_processed{};
     uint32_t m_parent_index{};
     uint32_t m_anchor_index{};
 
@@ -98,13 +103,14 @@ private:
     using p = profiler;
 
 public:
-    profile_block(const char* operation_name, uint32_t anchor_index)
+    profile_block(const char* operation_name, uint32_t anchor_index, uint64_t data_processed)
     {
         assert(anchor_index < p::max_anchors, "Too many profile anchors");
 
         m_parent_index = m_global_parent_index;
         m_anchor_index = anchor_index;
         m_operation_name = operation_name;
+        m_data_processed = data_processed;
 
         const profile_anchor& anchor = p::anchors[m_anchor_index];
         m_prev_inclusive_duration = anchor.inclusive_duration;
@@ -127,6 +133,7 @@ public:
         anchor.exclusive_duration += elapsed_time;
         anchor.inclusive_duration = m_prev_inclusive_duration + elapsed_time;
         ++anchor.hit_count;
+        anchor.data_processed += m_data_processed;
 
         anchor.name = m_operation_name;
     }

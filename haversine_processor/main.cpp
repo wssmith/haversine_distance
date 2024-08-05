@@ -120,7 +120,7 @@ namespace
 
     double read_reference_distance(const std::string& path, size_t expected_points)
     {
-        PROFILE_FUNCTION;
+        PROFILE_DATA_FUNCTION((expected_points + 1) * sizeof(double));
 
         std::ifstream input_file{ path, std::ios::binary };
 

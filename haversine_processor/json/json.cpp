@@ -25,7 +25,7 @@ namespace json
         if (!json_file)
             throw std::exception{ "Cannot open JSON file." };
 
-        const std::vector<token> tokens = scanner::scan(json_file);
+        const std::vector<token> tokens = scanner::scan(json_file, std::filesystem::file_size(filepath));
         json_file.close();
 
         return parser::parse(tokens);
