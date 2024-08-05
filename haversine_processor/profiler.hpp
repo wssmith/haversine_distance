@@ -30,7 +30,7 @@
 #define PROFILE_BLOCK(name) PROFILE_DATA_BLOCK((name), 0)
 #define PROFILE_FUNCTION PROFILE_DATA_FUNCTION(0)
 
-inline uint32_t anchor_id_counter = 1;
+inline uint32_t anchor_id_counter = 1; // 0 is reserved for "no anchor"
 
 template<const char* AnchorName>
 inline const uint32_t anchor_id = anchor_id_counter++;
