@@ -39,7 +39,7 @@ struct structural_string
     char chars[N];
 };
 
-template<std::size_t N>
+template<size_t N>
 structural_string(const char(&)[N]) -> structural_string<N>;
 
 #else
