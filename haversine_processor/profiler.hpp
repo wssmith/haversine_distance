@@ -24,7 +24,7 @@
 #define PROFILE_BLOCK(name) PROFILE_DATA_BLOCK((name), 0)
 #define PROFILE_FUNCTION PROFILE_DATA_FUNCTION(0)
 
-// this allows us to generate unique identifiers from anchor name content at compile time ...and it works across translation units!
+// this allows us to generate unique identifiers from anchor name content ...and it works across translation units!
 // if it's not obvious, it counts template instantiations based on string literal _content_ (the anchor names), using c++20's structural nttp feature.
 // i'm amazed c++ can do this in a relatively sane way.
 
