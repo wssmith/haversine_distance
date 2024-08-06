@@ -14,26 +14,33 @@
 
 #if PROFILER
 
-#if _MSC_VER
-#define FUNCTION_NAME __FUNCTION__
-#else
-#define FUNCTION_NAME __func__
-#endif
-
 #define CONCAT_CORE(a, b) a##b
 #define CONCAT(a, b) CONCAT_CORE(a, b)
 #define VAR_NAME(x) CONCAT(x, __LINE__)
 
-#define PROFILE_DATA_BLOCK(name, data_processed) static constexpr char VAR_NAME(anchor)[] = FUNCTION_NAME; profile_block VAR_NAME(activity){ (name), anchor_id<VAR_NAME(anchor)>, (data_processed) };
+#define PROFILE_DATA_BLOCK(name, data_processed) profile_block VAR_NAME(activity){ (name), anchor_id<structural_string{ name }>, (data_processed) };
 #define PROFILE_DATA_FUNCTION(data_processed) PROFILE_DATA_BLOCK(__func__, (data_processed))
 
 #define PROFILE_BLOCK(name) PROFILE_DATA_BLOCK((name), 0)
 #define PROFILE_FUNCTION PROFILE_DATA_FUNCTION(0)
 
+// this allows us to generate unique identifiers from anchor name content at compile time ...and it works across translation units!
+// if it's not obvious, it counts template instantiations based on string literal _content_ (the anchor names), using c++20's structural nttp feature.
+// i'm amazed c++ can do this in a relatively sane way.
+
 inline uint32_t anchor_id_counter = 1; // 0 is reserved for "no anchor"
 
-template<const char* AnchorName>
+template<auto AnchorName>
 inline const uint32_t anchor_id = anchor_id_counter++;
+
+template<size_t N>
+struct structural_string
+{
+    char chars[N];
+};
+
+template<std::size_t N>
+structural_string(const char(&)[N]) -> structural_string<N>;
 
 #else
 
