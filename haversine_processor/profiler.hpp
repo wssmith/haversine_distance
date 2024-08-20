@@ -18,15 +18,14 @@
 #define CONCAT(a, b) CONCAT_CORE(a, b)
 #define VAR_NAME(x) CONCAT(x, __LINE__)
 
-#define PROFILE_DATA_BLOCK(name, data_processed) profile_block VAR_NAME(activity){ (name), anchor_id<structural_string{ name }>, (data_processed) };
+#define PROFILE_DATA_BLOCK(name, data_processed) profile_block VAR_NAME(activity){ (name), anchor_id<structural_string{ (name) }>, (data_processed) };
 #define PROFILE_DATA_FUNCTION(data_processed) PROFILE_DATA_BLOCK(__func__, (data_processed))
 
 #define PROFILE_BLOCK(name) PROFILE_DATA_BLOCK((name), 0)
 #define PROFILE_FUNCTION PROFILE_DATA_FUNCTION(0)
 
-// this allows us to generate unique identifiers from anchor name content ...and it works across translation units!
-// if it's not obvious, it counts template instantiations based on string literal _content_ (the anchor names), using c++20's structural nttp feature.
-// i'm amazed c++ can do this in a relatively sane way.
+// this generates unique identifiers from anchor names in a way that works across translation units
+// it counts template instantiations based on string literal _content_ using c++20 structural nttp
 
 inline uint32_t anchor_id_counter = 1; // 0 is reserved for "no anchor"
 
@@ -134,14 +133,13 @@ public:
         m_global_parent_index = m_parent_index;
 
         profile_anchor& parent = p::anchors[m_parent_index];
-        profile_anchor& anchor = p::anchors[m_anchor_index];
-
         parent.exclusive_duration -= elapsed_time;
+
+        profile_anchor& anchor = p::anchors[m_anchor_index];
         anchor.exclusive_duration += elapsed_time;
         anchor.inclusive_duration = m_prev_inclusive_duration + elapsed_time;
         ++anchor.hit_count;
         anchor.data_processed += m_data_processed;
-
         anchor.name = m_operation_name;
     }
 
