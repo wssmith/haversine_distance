@@ -35,11 +35,6 @@
 // it counts template instantiations based on string literal _content_ using c++20 structural nttp
 namespace detail
 {
-    inline uint32_t anchor_id_counter = 1; // 0 is reserved for "no anchor"
-
-    template<auto AnchorName>
-    inline const uint32_t anchor_id = anchor_id_counter++;
-
     template<size_t N>
     struct fixed_string
     {
@@ -48,6 +43,11 @@ namespace detail
 
     template<size_t N>
     fixed_string(const char(&)[N]) -> fixed_string<N>;
+
+    inline uint32_t anchor_id_counter = 1; // 0 is reserved for "no anchor"
+
+    template<fixed_string AnchorName>
+    inline const uint32_t anchor_id = anchor_id_counter++;
 }
 
 #else

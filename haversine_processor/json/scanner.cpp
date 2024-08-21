@@ -317,7 +317,7 @@ namespace json::scanner
 
     std::vector<token> scan(std::istream& input_file, uintmax_t file_size)
     {
-        PROFILE_DATA_FUNCTION(file_size)
+        PROFILE_DATA_FUNCTION(file_size);
 
         std::vector<token> tokens;
         std::vector<std::string> errors;
