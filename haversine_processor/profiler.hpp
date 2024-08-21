@@ -24,7 +24,7 @@
 #define CONCAT(a, b) CONCAT_CORE(a, b)
 #define VAR_NAME(x) CONCAT(x, __LINE__)
 
-#define PROFILE_DATA_BLOCK_CORE(name, short_name, data_processed) profile_block VAR_NAME(activity){ (short_name), detail::anchor_id<detail::fixed_string{ (name) }>, (data_processed) };
+#define PROFILE_DATA_BLOCK_CORE(name, short_name, data_processed) profile_block VAR_NAME(activity){ (short_name), detail::anchor_id<detail::fixed_string{ (name) }>, (data_processed) }
 #define PROFILE_DATA_BLOCK(name, data_processed) PROFILE_DATA_BLOCK_CORE((name), (name), (data_processed))
 #define PROFILE_DATA_FUNCTION(data_processed) PROFILE_DATA_BLOCK_CORE(CURRENT_FUNCTION, __func__, (data_processed))
 
