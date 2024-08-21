@@ -58,7 +58,7 @@ namespace
         const auto& anchors = profiler::get_anchors();
 
         std::vector<const profile_anchor*> sorted_anchors;
-        sorted_anchors.reserve(anchor_id_counter);
+        sorted_anchors.reserve(detail::anchor_id_counter);
 
         for (const profile_anchor& anchor : anchors)
         {

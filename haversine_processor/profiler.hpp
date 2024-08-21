@@ -14,32 +14,41 @@
 
 #if PROFILER
 
+#ifdef _MSC_VER
+#define CURRENT_FUNCTION __FUNCTION__
+#else
+#define CURRENT_FUNCTION __func__
+#endif
+
 #define CONCAT_CORE(a, b) a##b
 #define CONCAT(a, b) CONCAT_CORE(a, b)
 #define VAR_NAME(x) CONCAT(x, __LINE__)
 
-#define PROFILE_DATA_BLOCK(name, data_processed) profile_block VAR_NAME(activity){ (name), anchor_id<structural_string{ (name) }>, (data_processed) };
-#define PROFILE_DATA_FUNCTION(data_processed) PROFILE_DATA_BLOCK(__func__, (data_processed))
+#define PROFILE_DATA_BLOCK_CORE(name, short_name, data_processed) profile_block VAR_NAME(activity){ (short_name), detail::anchor_id<detail::fixed_string{ (name) }>, (data_processed) };
+#define PROFILE_DATA_BLOCK(name, data_processed) PROFILE_DATA_BLOCK_CORE((name), (name), (data_processed))
+#define PROFILE_DATA_FUNCTION(data_processed) PROFILE_DATA_BLOCK_CORE(CURRENT_FUNCTION, __func__, (data_processed))
 
 #define PROFILE_BLOCK(name) PROFILE_DATA_BLOCK((name), 0)
 #define PROFILE_FUNCTION PROFILE_DATA_FUNCTION(0)
 
 // this generates unique identifiers from anchor names in a way that works across translation units
 // it counts template instantiations based on string literal _content_ using c++20 structural nttp
-
-inline uint32_t anchor_id_counter = 1; // 0 is reserved for "no anchor"
-
-template<auto AnchorName>
-inline const uint32_t anchor_id = anchor_id_counter++;
-
-template<size_t N>
-struct structural_string
+namespace detail
 {
-    char chars[N];
-};
+    inline uint32_t anchor_id_counter = 1; // 0 is reserved for "no anchor"
 
-template<size_t N>
-structural_string(const char(&)[N]) -> structural_string<N>;
+    template<auto AnchorName>
+    inline const uint32_t anchor_id = anchor_id_counter++;
+
+    template<size_t N>
+    struct fixed_string
+    {
+        char data[N];
+    };
+
+    template<size_t N>
+    fixed_string(const char(&)[N]) -> fixed_string<N>;
+}
 
 #else
 
