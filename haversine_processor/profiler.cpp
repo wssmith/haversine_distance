@@ -1,14 +1,13 @@
 #include "profiler.hpp"
 
+#include <algorithm>
 #include <format>
+#include <iomanip>
 #include <iostream>
 #include <locale>
+#include <vector>
 
 #if PROFILER
-
-#include <algorithm>
-#include <iomanip>
-#include <vector>
 
 #define PRINT_ANCHORS(...) print_anchors(__VA_ARGS__)
 
@@ -18,7 +17,6 @@
 
 #endif
 
-#if PROFILER
 namespace
 {
     void print_anchor(const profile_anchor& anchor, uint64_t cpu_freq, uint64_t overall_duration)
@@ -82,7 +80,6 @@ namespace
         }
     }
 }
-#endif
 
 void profiler::print_results()
 {
