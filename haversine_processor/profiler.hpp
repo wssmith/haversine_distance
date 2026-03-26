@@ -52,6 +52,8 @@ namespace detail
 
 #else
 
+#define PROFILE_DATA_BLOCK(...)
+#define PROFILE_DATA_FUNCTION(...)
 #define PROFILE_BLOCK(...)
 #define PROFILE_FUNCTION
 
